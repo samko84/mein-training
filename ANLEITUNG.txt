@@ -1,0 +1,1 @@
+Mein Training 5.20: Gesamte Trainingskonstanz-Karte folgt beim horizontalen Wischen dem Finger und gleitet beim Monatswechsel vollständig aus dem Bildschirm; neue Monatskarte gleitet ein. Vertikales Scrollen bleibt erhalten. Pfeile bleiben als Alternative. Vor dem Update JSON-Backup aufbewahren. ZIP-Inhalt in Netlify hochladen.
