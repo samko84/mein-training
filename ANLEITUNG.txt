@@ -1,1 +1,3 @@
-Mein Training 5.20: Gesamte Trainingskonstanz-Karte folgt beim horizontalen Wischen dem Finger und gleitet beim Monatswechsel vollständig aus dem Bildschirm; neue Monatskarte gleitet ein. Vertikales Scrollen bleibt erhalten. Pfeile bleiben als Alternative. Vor dem Update JSON-Backup aufbewahren. ZIP-Inhalt in Netlify hochladen.
+Mein Training 5.20
+ZIP entpacken und alle Dateien im Stammverzeichnis des GitHub-Repositories hochladen. Keine JSON-Backups hochladen!
+Vor dem Update ein JSON-Backup aus der App sichern. GitHub Pages kann einige Minuten für die Veröffentlichung benötigen.
