@@ -1,5 +1,9 @@
-Mein Training 6.0.5
+Mein Training 6.0.8
 
-Update: natives iPhone-Scrollen und neue Körpergewicht-Eingabe mit kompakter Datumsauswahl, grosser Gewichtsanzeige und +/- 0,1 kg.
+Änderungen:
+- Flache, hellere Eingabefelder statt dunkler vertiefter Felder
+- Dezenter Mint-Fokus beim Antippen
+- Einheitliches Design für Körpergewicht, Trainingsgewicht und Wiederholungen
+- „Übung später“ wurde zu „Nächste Übung →“
 
-Vor dem Update Backup behalten.
+Für GitHub Pages alle Dateien dieses Ordners in das Repository mein-training hochladen und vorhandene Dateien ersetzen.
