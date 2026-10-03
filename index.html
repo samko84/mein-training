@@ -1035,4 +1035,125 @@ body.training-active .bottom-nav{display:grid!important}
  if(page==='progress')progress();
 })();
 </script>
+
+<style id="v6015-style">
+/* V6.0.15 – deliberate save flow and clean report */
+.plan-status-dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:#65d9af;box-shadow:0 0 0 4px rgba(101,217,175,.12);margin-left:9px;vertical-align:1px}
+.guided-save{grid-column:1/-1!important;min-height:56px!important;background:#65d9af!important;color:#0e2923!important;font-size:16px!important}
+.sets button.pending,.sets button.done{background:#65d9af!important;color:#0b2b23!important;box-shadow:0 0 0 2px rgba(101,217,175,.18)!important}
+#reportDialog>form{display:none!important}
+#reportDialog .report-actions{margin-top:16px!important;display:block!important}
+#reportDialog .report-actions button{width:100%!important;min-height:56px!important;background:#65d9af!important;color:#0e2923!important}
+#reportDialog .feeling-row{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important}
+#reportDialog .feeling-btn{min-width:0!important;width:100%!important;padding:10px 4px!important}
+#reportDialog .feeling-btn span{font-size:24px!important}
+#reportDialog .feeling-btn small{font-size:10px!important;line-height:1.15!important}
+@media(max-width:430px){#reportDialog .feeling-row{gap:5px!important}#reportDialog .feeling-btn{padding:9px 2px!important}}
+</style>
+<script id="v6015-script">
+(function(){
+  let pendingSets={};
+  let pendingFeeling=null;
+
+  // Calendar must be visible immediately on a cold app start.
+  const ensureHomeCalendar=()=>{ try{ if(typeof v6RenderCalendar==='function') v6RenderCalendar(); if(typeof bindHomeSwipe==='function') bindHomeSwipe(); }catch(e){} };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(ensureHomeCalendar,0)); else setTimeout(ensureHomeCalendar,0);
+  window.addEventListener('pageshow',()=>setTimeout(ensureHomeCalendar,0));
+
+  // Active plan: small green status light instead of the large "Aktiv" badge.
+  const basePlanManager=renderPlanManager;
+  renderPlanManager=function(){
+    basePlanManager();
+    const root=document.getElementById('planManager'); if(!root)return;
+    root.querySelectorAll('.card').forEach(card=>{
+      const pill=[...card.querySelectorAll('.pill')].find(x=>x.textContent.trim()==='Aktiv');
+      const sub=card.querySelector('.muted.sub');
+      if(pill){
+        const title=card.querySelector('b');
+        if(title && !title.querySelector('.plan-status-dot')) title.insertAdjacentHTML('beforeend','<span class="plan-status-dot" title="Aktiver Plan" aria-label="Aktiver Plan"></span>');
+        pill.remove();
+      }
+      if(sub) sub.textContent=sub.textContent.replace(/\s*·\s*Aktiver Plan\s*/,'').trim();
+    });
+  };
+
+  // Add an explicit save button to the guided exercise. Selecting sets alone never advances.
+  const baseGuidedRender=renderPlan;
+  renderPlan=function(){
+    baseGuidedRender();
+    const s=data.session; if(!s)return;
+    const card=document.querySelector('.guided-card'); if(!card)return;
+    const id=String(card.dataset.exercise||'');
+    const ex=data.exercises.find(x=>String(x.id)===id); if(!ex)return;
+    if(!pendingSets[id]) pendingSets[id]=[...(s.done[id]||Array(Number(ex.sets||3)).fill(false))];
+    card.querySelectorAll('[data-set]').forEach(btn=>{
+      const i=Number(btn.dataset.i), on=!!pendingSets[id][i];
+      btn.classList.toggle('pending',on); btn.classList.toggle('done',on); btn.textContent=on?'✓':String(i+1);
+    });
+    const actions=card.querySelector('.guided-actions');
+    if(actions && !actions.querySelector('[data-v6015-save]')) actions.insertAdjacentHTML('afterbegin','<button type="button" class="guided-save" data-v6015-save="'+id+'">Speichern & nächste Übung</button>');
+  };
+
+  // Capture set taps before the legacy quick-set handler can auto-advance.
+  document.getElementById('exerciseList')?.addEventListener('click',ev=>{
+    const setBtn=ev.target.closest('[data-set]');
+    if(setBtn && data.session){
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      const id=String(setBtn.dataset.set), i=Number(setBtn.dataset.i), ex=data.exercises.find(x=>String(x.id)===id); if(!ex)return;
+      let a=pendingSets[id]||[...(data.session.done[id]||Array(Number(ex.sets||3)).fill(false))];
+      const selected=a.slice(0,i+1).every(Boolean) && a.slice(i+1).every(x=>!x);
+      a=Array.from({length:Number(ex.sets||3)},(_,j)=>selected?false:j<=i);
+      pendingSets[id]=a;
+      document.querySelectorAll('[data-set="'+CSS.escape(id)+'"]').forEach(b=>{const n=Number(b.dataset.i),on=!!a[n];b.classList.toggle('pending',on);b.classList.toggle('done',on);b.textContent=on?'✓':String(n+1)});
+      return;
+    }
+    const saveBtn=ev.target.closest('[data-v6015-save]');
+    if(saveBtn && data.session){
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      const id=String(saveBtn.dataset.v6015Save), ex=data.exercises.find(x=>String(x.id)===id); if(!ex)return;
+      const a=pendingSets[id]||[...(data.session.done[id]||Array(Number(ex.sets||3)).fill(false))];
+      if(!a.some(Boolean)){ alert('Bitte zuerst die absolvierten Sätze auswählen.'); return; }
+      data.session.done[id]=[...a];
+      save();
+      if(Array.isArray(data.session.queue) && data.session.current<data.session.queue.length-1) data.session.current++;
+      save(); delete pendingSets[id]; renderPlan(); notify('Übung gespeichert');
+      return;
+    }
+  },true);
+
+  // Training report: choose first, save deliberately. No duplicate close button.
+  document.addEventListener('click',ev=>{
+    const feel=ev.target.closest('#reportDialog [data-report-feeling]');
+    if(feel){
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      pendingFeeling=Number(feel.dataset.reportFeeling);
+      document.querySelectorAll('#reportDialog [data-report-feeling]').forEach(x=>x.classList.toggle('selected',x===feel));
+      return;
+    }
+    const done=ev.target.closest('#reportDone');
+    if(done){
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      if(!pendingFeeling){ alert('Bitte wähle zuerst aus, wie dein Training war.'); return; }
+      const latest=data.history[data.history.length-1];
+      if(latest){ latest.feeling=pendingFeeling; save(); }
+      pendingFeeling=null;
+      document.getElementById('reportDialog')?.close();
+      show('home'); notify('Training gespeichert');
+    }
+  },true);
+
+  // Normalize the report action whenever the legacy report is generated.
+  const reportBody=document.getElementById('reportBody');
+  if(reportBody){
+    new MutationObserver(()=>{
+      const b=document.getElementById('reportDone'); if(b){b.textContent='Speichern';b.classList.remove('secondary');}
+      const form=document.querySelector('#reportDialog>form'); if(form)form.style.display='none';
+      pendingFeeling=null;
+    }).observe(reportBody,{childList:true,subtree:true});
+  }
+
+  // Display version.
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0 && el.textContent?.includes('Mein Training 6.0.14'))el.textContent=el.textContent.replace('6.0.14','6.0.15')});
+})();
+</script>
 </body></html>
