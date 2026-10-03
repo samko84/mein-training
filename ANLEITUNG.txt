@@ -1,3 +1,5 @@
-Mein Training 6.0.1 – Korrekturrunde nach iPhone-Test
+Mein Training 6.0.5
 
-Enthält: kompakte Bottom-Navigation, Kalender auf Start, geführtes Training mit Später/Heute auslassen, grössere Gerätenummer, Mehr als Menü, Körpergewicht eigene Seite, Trainingsbericht mit Navigation.
+Update: natives iPhone-Scrollen und neue Körpergewicht-Eingabe mit kompakter Datumsauswahl, grosser Gewichtsanzeige und +/- 0,1 kg.
+
+Vor dem Update Backup behalten.
