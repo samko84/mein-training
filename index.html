@@ -1156,4 +1156,147 @@ body.training-active .bottom-nav{display:grid!important}
   document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0 && el.textContent?.includes('Mein Training 6.0.14'))el.textContent=el.textContent.replace('6.0.14','6.0.15')});
 })();
 </script>
+
+<style id="v6016-style">
+/* V6.0.16 – deliberate save/edit flow, bodyweight mode, cleaner history */
+.guided-save{grid-column:auto!important;width:auto!important;min-width:150px!important;min-height:50px!important;padding:12px 24px!important;justify-self:start!important}
+.guided-actions{align-items:center!important}
+.guided-actions .v6016-mainrow{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.guided-actions .v6016-navrow{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.v6016-edit{min-height:50px!important;padding:12px 22px!important}
+.v6016-busy{background:#38536a!important;color:#f1f7f8!important}
+.v6016-locked input,.v6016-locked textarea,.v6016-locked .quick-step,.v6016-locked [data-set],.v6016-locked [data-v6-effort],.v6016-locked select{pointer-events:none!important;opacity:.62!important}
+.weight-mode{margin-bottom:8px!important}
+.weight-mode select{min-height:42px!important;padding:7px 10px!important;border-radius:12px!important}
+.bodyweight-display{font-weight:800;text-align:center;min-width:0;flex:1;color:#eaf4f5}
+.history-feeling-readonly{margin-top:18px;padding-top:14px;border-top:1px solid #36536a}
+.history-feeling-readonly .saved-feeling{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:#29465a;font-weight:800}
+.history-feeling-readonly .saved-feeling span{font-size:24px}
+</style>
+<script id="v6016-script">
+(function(){
+  const BW_NAMES=new Set(['Hyperextension','Vertical Knee']);
+  data.weightModes ||= {};
+  data.session && (data.session.saved ||= {});
+
+  // Repair the old import error: the value 3 was the set count, not 3 kg.
+  data.exercises.forEach(e=>{
+    if(BW_NAMES.has(e.name)){
+      e.weightMode=e.weightMode||data.weightModes[e.id]||'bodyweight';
+      data.weightModes[e.id]=e.weightMode;
+      if(e.weightMode==='bodyweight' && Number(e.weight)===3) e.weight=null;
+    }
+  });
+  (data.plans||[]).forEach(p=>(p.exercises||[]).forEach(e=>{
+    if(BW_NAMES.has(e.name) && Number(e.weight)===3){e.weight=null;e.weightMode='bodyweight'}
+  }));
+  (data.history||[]).forEach(h=>(h.exercises||[]).forEach(e=>{
+    if(BW_NAMES.has(e.name) && Number(e.weight)===3){e.weight=null;e.weightMode='bodyweight'}
+  }));
+  save();
+
+  const baseRenderPlan6016=renderPlan;
+  renderPlan=function(){
+    if(data.session){data.session.saved ||= {}};
+    baseRenderPlan6016();
+    const s=data.session,card=document.querySelector('.guided-card');
+    if(!s||!card)return;
+    const id=String(card.dataset.exercise||''),e=data.exercises.find(x=>String(x.id)===id);if(!e)return;
+
+    // Bodyweight / added-weight selector only for relevant exercises.
+    if(BW_NAMES.has(e.name)){
+      e.weightMode=e.weightMode||data.weightModes[id]||'bodyweight'; data.weightModes[id]=e.weightMode;
+      const weightInput=card.querySelector('[data-weight="'+CSS.escape(id)+'"]');
+      const weightBox=weightInput?.closest('.quick-value');
+      const label=weightBox?.parentElement?.querySelector('label');
+      if(label) label.textContent='Heute';
+      if(weightBox && !weightBox.parentElement.querySelector('.weight-mode')){
+        weightBox.insertAdjacentHTML('beforebegin','<div class="weight-mode"><select data-v6016-weight-mode="'+id+'"><option value="bodyweight" '+(e.weightMode==='bodyweight'?'selected':'')+'>Körpergewicht</option><option value="added" '+(e.weightMode==='added'?'selected':'')+'>Zusatzgewicht</option></select></div>');
+      }
+      if(e.weightMode==='bodyweight' && weightBox){
+        weightBox.querySelectorAll('.quick-step').forEach(b=>{b.disabled=true;b.style.opacity='.35'});
+        if(weightInput){weightInput.disabled=true;weightInput.style.display='none'}
+        if(!weightBox.querySelector('.bodyweight-display')) weightBox.insertAdjacentHTML('beforeend','<div class="bodyweight-display">Körpergewicht</div>');
+      }
+      const prevLine=weightBox?.parentElement?.parentElement?.nextElementSibling;
+      if(prevLine?.textContent?.includes('Letztes Training')){
+        const prev=findPrevious(e,s.started);
+        if(prev && (prev.weightMode==='bodyweight'||(BW_NAMES.has(e.name)&&prev.weight==null))) prevLine.innerHTML='Letztes Training: <b class="success">Körpergewicht</b>';
+      }
+    }
+
+    // Replace legacy controls with the agreed deliberate flow.
+    const actions=card.querySelector('.guided-actions');
+    if(actions){
+      actions.innerHTML='<div class="v6016-mainrow"><button type="button" class="guided-save" data-v6016-save="'+id+'">Speichern</button><button type="button" class="secondary v6016-edit" data-v6016-edit="'+id+'" style="display:none">Bearbeiten</button><button type="button" class="secondary v6016-busy" data-v6016-busy="'+id+'">Besetzt</button></div><div class="v6016-navrow"><button type="button" class="secondary" data-v6016-back '+(s.current===0?'disabled':'')+'>‹ Vorherige</button><button type="button" class="secondary" data-v6016-next="'+id+'">Nächste Übung →</button></div>';
+    }
+    const saved=!!s.saved[id];
+    card.classList.toggle('v6016-locked',saved);
+    const saveB=card.querySelector('[data-v6016-save]'),editB=card.querySelector('[data-v6016-edit]');
+    if(saveB) saveB.style.display=saved?'none':''; if(editB) editB.style.display=saved?'':'none';
+  };
+
+  // One interaction model: edit -> save -> locked display. Navigation is always deliberate.
+  document.getElementById('exerciseList')?.addEventListener('click',ev=>{
+    const saveB=ev.target.closest('[data-v6016-save]');
+    if(saveB&&data.session){
+      ev.preventDefault();ev.stopImmediatePropagation();
+      const id=String(saveB.dataset.v6016Save),e=data.exercises.find(x=>String(x.id)===id);if(!e)return;
+      const a=(typeof pendingSets!=='undefined'&&pendingSets[id]) ? pendingSets[id] : (data.session.done[id]||[]);
+      if(!a.some(Boolean)){alert('Bitte zuerst die absolvierten Sätze auswählen.');return}
+      data.session.done[id]=[...a]; data.session.saved[id]=true;
+      e.weightMode=data.weightModes[id]||e.weightMode;
+      save();renderPlan();notify('Übung gespeichert');return;
+    }
+    const editB=ev.target.closest('[data-v6016-edit]');
+    if(editB&&data.session){ev.preventDefault();ev.stopImmediatePropagation();data.session.saved[String(editB.dataset.v6016Edit)]=false;save();renderPlan();return}
+    const nextB=ev.target.closest('[data-v6016-next]');
+    if(nextB&&data.session){
+      ev.preventDefault();ev.stopImmediatePropagation();const id=String(nextB.dataset.v6016Next);
+      if(!data.session.saved[id]){alert('Bitte die Übung zuerst speichern.');return}
+      if(data.session.current<data.session.queue.length-1)data.session.current++;save();renderPlan();return;
+    }
+    const backB=ev.target.closest('[data-v6016-back]');
+    if(backB&&data.session&&data.session.current>0){ev.preventDefault();ev.stopImmediatePropagation();data.session.current--;save();renderPlan();return}
+    const busyB=ev.target.closest('[data-v6016-busy]');
+    if(busyB&&data.session){
+      ev.preventDefault();ev.stopImmediatePropagation();const s=data.session,id=String(busyB.dataset.v6016Busy),pos=s.queue.indexOf(id);
+      if(pos>=0){s.queue.splice(pos,1);const target=Math.min(pos+2,s.queue.length);s.queue.splice(target,0,id);s.current=Math.min(pos,s.queue.length-1);s.status[id]='besetzt';s.saved[id]=false;save();renderPlan();notify('Besetzt – nach zwei Übungen erneut eingeplant')}return;
+    }
+  },true);
+
+  document.getElementById('exerciseList')?.addEventListener('change',ev=>{
+    const m=ev.target.closest('[data-v6016-weight-mode]');if(!m)return;
+    ev.preventDefault();ev.stopImmediatePropagation();const id=String(m.dataset.v6016WeightMode),e=data.exercises.find(x=>String(x.id)===id);if(!e)return;
+    data.weightModes[id]=m.value;e.weightMode=m.value;
+    if(m.value==='bodyweight')e.weight=null;else if(e.weight==null)e.weight=0;
+    if(data.session){data.session.saved ||= {};data.session.saved[id]=false}save();renderPlan();
+  },true);
+
+  // History is read-only. Show only the stored feeling and remove the swipe instruction.
+  const baseHistory6016=history;
+  history=function(){
+    baseHistory6016();
+    const hs=ordered(),h=hs[hindex],card=document.getElementById('swipeCard');if(!h||!card)return;
+    card.querySelectorAll('[data-history-feeling]').forEach(b=>b.removeAttribute('data-history-feeling'));
+    const wf=card.querySelector('.workout-feeling');
+    if(wf){
+      const map={1:['😫','Sehr schwach'],2:['😕','Schwach'],3:['🙂','Gut'],4:['😄','Sehr gut'],5:['🔥','Stark']},f=map[Number(h.feeling)];
+      wf.className='history-feeling-readonly';wf.innerHTML='<label>Wie war dein Training?</label><div style="margin-top:8px">'+(f?'<div class="saved-feeling"><span>'+f[0]+'</span>'+f[1]+'</div>':'<span class="muted">Keine Bewertung gespeichert</span>')+'</div>';
+    }
+    [...card.querySelectorAll('p.muted.sub')].forEach(p=>{if(p.textContent.includes('Rechts: älter')||p.textContent.includes('Links: neuer'))p.remove()});
+    // Correct bodyweight display in old/new history rows.
+    const rows=card.querySelectorAll('.histrow');
+    (h.exercises||[]).forEach((e,i)=>{if(BW_NAMES.has(e.name)&&(e.weightMode==='bodyweight'||e.weight==null)){const b=rows[i]?.querySelector('b.success');if(b)b.textContent='Körpergewicht'}});
+  };
+
+  // New sessions inherit explicit bodyweight modes.
+  const oldStart=document.getElementById('start')?.onclick;
+  if(oldStart) document.getElementById('start').onclick=function(ev){oldStart.call(this,ev);if(data.session){data.session.saved||={};data.exercises.forEach(e=>{if(BW_NAMES.has(e.name)){e.weightMode=data.weightModes[e.id]||e.weightMode||'bodyweight';if(e.weightMode==='bodyweight')e.weight=null}});save();renderPlan()}};
+
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&el.textContent?.includes('Mein Training 6.0.15'))el.textContent=el.textContent.replace('6.0.15','6.0.16')});
+  render();
+})();
+</script>
+
 </body></html>
