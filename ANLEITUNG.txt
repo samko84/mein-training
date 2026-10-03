@@ -1,10 +1,3 @@
-Mein Training V6.0
+Mein Training 6.0.1 – Korrekturrunde nach iPhone-Test
 
-Vor Update: JSON-Backup behalten.
-Nach Upload: App neu öffnen und Funktionen testen.
-
-Mein Training V6.0
-
-Grosses Update: gefuehrter Trainingsmodus, Stoppuhr, 5-stufige Anstrengung, Bottom-Navigation, Kalender auf Start, Vollbild-Trainingsbericht und aufgeraeumtes Koerpergewicht.
-
-Vor dem Update Backup exportieren. Danach alle Dateien ins GitHub-Repository hochladen und gleichnamige Dateien ersetzen.
+Enthält: kompakte Bottom-Navigation, Kalender auf Start, geführtes Training mit Später/Heute auslassen, grössere Gerätenummer, Mehr als Menü, Körpergewicht eigene Seite, Trainingsbericht mit Navigation.
