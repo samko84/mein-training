@@ -1,3 +1,10 @@
-Mein Training 5.20
-ZIP entpacken und alle Dateien im Stammverzeichnis des GitHub-Repositories hochladen. Keine JSON-Backups hochladen!
-Vor dem Update ein JSON-Backup aus der App sichern. GitHub Pages kann einige Minuten für die Veröffentlichung benötigen.
+Mein Training V6.0
+
+Vor Update: JSON-Backup behalten.
+Nach Upload: App neu öffnen und Funktionen testen.
+
+Mein Training V6.0
+
+Grosses Update: gefuehrter Trainingsmodus, Stoppuhr, 5-stufige Anstrengung, Bottom-Navigation, Kalender auf Start, Vollbild-Trainingsbericht und aufgeraeumtes Koerpergewicht.
+
+Vor dem Update Backup exportieren. Danach alle Dateien ins GitHub-Repository hochladen und gleichnamige Dateien ersetzen.
