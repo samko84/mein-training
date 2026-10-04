@@ -1566,4 +1566,61 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
   render();draw();training();markSaves();
 })();
 </script>
+
+
+<style id="v6022-style">
+/* V6.0.22 – final series + training controls */
+.series-card.v6022{padding:18px!important}
+.series-card.v6022 h3{margin:0 0 10px!important}
+.series-card.v6022 .series-picker{margin:0 0 10px!important;min-height:46px!important}
+.series-card.v6022 .series-actions{margin:0!important;display:block!important}
+.series-card.v6022 .series-actions button{width:auto!important;min-width:150px!important;min-height:44px!important}
+.series-card.v6022 .series-startline{margin:10px 2px!important;color:#aebfd0!important;font-size:14px!important}
+.series-card.v6022 .series-elapsed{margin:8px 2px 10px!important;font-size:20px!important;font-weight:800!important}
+.v6022-actions{display:grid!important;grid-template-columns:1fr!important;gap:9px!important;margin-top:16px!important}
+.v6022-save{width:100%!important;min-height:54px!important;background:#2f9e62!important;color:#fff!important;font-size:17px!important;border-color:#3caf70!important}
+.v6022-status{width:100%!important;min-height:50px!important;background:#30455a!important;color:#f1f7f8!important;border:1px solid #48647c!important;border-radius:11px!important;font-size:16px!important;font-weight:750!important;text-align:left!important;padding:0 16px!important;display:flex!important;align-items:center!important;justify-content:space-between!important}
+.v6022-status::after{content:'⌄';font-size:19px;color:#b9c9d7}
+.v6022-menu{display:none;gap:7px;margin-top:-2px}.v6022-menu.open{display:grid}.v6022-menu button{width:100%!important;min-height:46px!important;text-align:left!important;background:#30455a!important;color:#f1f7f8!important;border:1px solid #48647c!important}
+.v6022-error{margin:0 0 9px!important;color:#ffd27a!important;font-weight:700!important;display:none}.v6022-error.show{display:block!important}
+button.app-save-green{background:#2f9e62!important;color:#fff!important;border-color:#3caf70!important}
+</style>
+<dialog id="seriesStop6022"><form method="dialog" class="confirm-card"><h3>Serie beenden?</h3><p class="muted" id="seriesStop6022Summary"></p><div class="wrap"><button value="cancel" class="secondary">Abbrechen</button><button value="confirm">Serie beenden</button></div></form></dialog>
+<script id="v6022-script">
+(function(){
+ const KEY='mein-training-series-v1';
+ const read=()=>{let x={type:'bewusst-ernaehren',start:null,runs:[]};try{x={...x,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){};if(!Array.isArray(x.runs))x.runs=[];return x};
+ const write=x=>localStorage.setItem(KEY,JSON.stringify(x));
+ const pad=n=>String(n).padStart(2,'0');
+ const elapsed=ms=>{const t=Math.max(0,Math.floor(ms/1000)),d=Math.floor(t/86400),h=Math.floor(t%86400/3600),m=Math.floor(t%3600/60),sec=t%60;return (d?d+' Tage · ':'')+pad(h)+' Std. · '+pad(m)+' Min. · '+pad(sec)+' Sek.'};
+ const startLabel=iso=>{const d=new Date(iso);return d.toLocaleDateString('de-CH',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})+' · '+d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'})+' Uhr'};
+ let painting=false;
+ function seriesCard(){let c=document.getElementById('homeSeriesCard');if(!c){c=document.createElement('div');c.id='homeSeriesCard'}c.className='card series-card v6022';document.getElementById('home')?.appendChild(c);return c}
+ function draw(){if(painting)return;painting=true;const c=seriesCard(),x=read(),running=!!x.start;c.innerHTML='<h3>Meine Serie</h3><select class="series-picker" aria-label="Serie"><option value="bewusst-ernaehren">Bewusst ernähren</option></select>'+(running?'<div class="series-elapsed" id="v6022Elapsed">'+elapsed(Date.now()-new Date(x.start).getTime())+'</div><div class="series-startline">'+startLabel(x.start)+'</div><div class="series-actions"><button type="button" class="secondary" id="v6022Stop">Serie beenden</button></div>':'<div class="series-actions"><button type="button" id="v6022Start">Serie starten</button></div>');
+  document.getElementById('v6022Start')?.addEventListener('click',()=>{const y=read();y.start=new Date().toISOString();write(y);draw();notify('Serie gestartet')});
+  document.getElementById('v6022Stop')?.addEventListener('click',()=>{const y=read();if(!y.start)return;document.getElementById('seriesStop6022Summary').textContent='Start: '+startLabel(y.start)+' · Dauer: '+elapsed(Date.now()-new Date(y.start).getTime());document.getElementById('seriesStop6022')?.showModal()});
+  painting=false;
+ }
+ document.getElementById('seriesStop6022')?.addEventListener('close',function(){if(this.returnValue!=='confirm')return;const x=read();if(!x.start)return;const end=new Date(),start=new Date(x.start);x.runs.push({start:start.toISOString(),end:end.toISOString(),duration:Math.max(0,end-start)});x.start=null;write(x);draw();if(typeof page!=='undefined'&&page==='progress')progress();notify('Serie gespeichert')});
+ function training(){const c=document.querySelector('.guided-card'),s=(typeof data!=='undefined'?data.session:null);if(!c||!s)return;const id=String(c.dataset.exercise||''),a=c.querySelector('.guided-actions');if(!a)return;if(a.querySelector('[data-v6022-save="'+CSS.escape(id)+'"]'))return;a.innerHTML='<div class="v6022-error" data-v6022-error>Bitte wähle mindestens einen absolvierten Satz.</div><div class="v6022-actions"><button type="button" class="guided-save app-save-green v6022-save" data-v6022-save="'+id+'">Speichern</button><button type="button" class="v6022-status" data-v6022-status="'+id+'">Status</button><div class="v6022-menu" data-v6022-menu="'+id+'"><button type="button" data-v6022-choice="busy">Gerät besetzt</button><button type="button" data-v6022-choice="skip">Heute aussetzen</button><button type="button" data-v6022-choice="alternative">Alternative Übung</button></div></div>'}
+ function selected(id){return (typeof pendingSets!=='undefined'&&pendingSets[id])?pendingSets[id]:(data.session?.done?.[id]||[])}
+ let pending=null;
+ document.getElementById('exerciseList')?.addEventListener('click',ev=>{
+  const saveBtn=ev.target.closest('[data-v6022-save]');if(saveBtn&&data.session){ev.preventDefault();ev.stopImmediatePropagation();const id=String(saveBtn.dataset.v6022Save),arr=selected(id),c=saveBtn.closest('.guided-card');if(!arr.some(Boolean)){c.querySelector('[data-v6022-error]')?.classList.add('show');return}c.querySelector('[data-v6022-error]')?.classList.remove('show');const ex=data.exercises.find(x=>String(x.id)===id),n=arr.filter(Boolean).length,eff=data.session.effort?.[id];pending=id;document.getElementById('confirm6017Summary').innerHTML='<b>'+esc(ex.name)+'</b><br>'+(ex.weightMode==='bodyweight'?'Körpergewicht':fmt(ex.weight)+' kg')+' · '+n+' von '+(ex.sets||3)+' Sätzen'+(eff?' · '+v6EffortLabel(eff):'');document.getElementById('confirm6017')?.showModal();return}
+  const st=ev.target.closest('[data-v6022-status]');if(st){ev.preventDefault();ev.stopImmediatePropagation();document.querySelector('[data-v6022-menu="'+CSS.escape(st.dataset.v6022Status)+'"]')?.classList.toggle('open');return}
+  const ch=ev.target.closest('[data-v6022-choice]');if(ch&&data.session){ev.preventDefault();ev.stopImmediatePropagation();const c=ch.closest('.guided-card'),id=String(c.dataset.exercise||''),choice=ch.dataset.v6022Choice,s=data.session,pos=s.queue.indexOf(id);if(choice==='busy'&&pos>=0){s.queue.splice(pos,1);s.queue.splice(Math.min(pos+2,s.queue.length),0,id);s.current=Math.min(pos,Math.max(0,s.queue.length-1));s.status[id]='besetzt';s.saved&&(s.saved[id]=false);save();renderPlan();notify('Gerät besetzt – nach zwei Übungen wieder eingeplant')}else if(choice==='skip'){s.status[id]='ausgelassen';s.saved||(s.saved={});s.saved[id]=true;if(s.current<s.queue.length-1)s.current++;else s.current=s.queue.length;save();renderPlan();notify('Übung heute ausgesetzt')}else if(choice==='alternative'){notify('Alternative Übung auswählen')};return}
+ },true);
+ document.getElementById('confirm6017Cancel')?.addEventListener('click',()=>{pending=null},true);
+ document.getElementById('confirm6017Save')?.addEventListener('click',ev=>{if(!pending||!data.session)return;ev.preventDefault();ev.stopImmediatePropagation();const id=pending,arr=selected(id);data.session.done[id]=[...arr];data.session.saved||={};data.session.saved[id]=true;const ex=data.exercises.find(x=>String(x.id)===id);if(ex)ex.weightMode=data.weightModes?.[id]||ex.weightMode;if(data.session.current<data.session.queue.length-1)data.session.current++;else data.session.current=data.session.queue.length;pending=null;save();document.getElementById('confirm6017')?.close();renderPlan();notify('Übung gespeichert')},true);
+ function markSaves(){document.querySelectorAll('button').forEach(b=>{const t=(b.textContent||'').trim();if(/speichern/i.test(t)&&!/export/i.test(t))b.classList.add('app-save-green')})}
+ const oh=renderHome;renderHome=function(){oh();requestAnimationFrame(draw)};const op=renderPlan;renderPlan=function(){op();training();markSaves()};
+ const home=document.getElementById('home');if(home)new MutationObserver(()=>{const c=document.getElementById('homeSeriesCard');if(c&&!painting&&!c.classList.contains('v6022'))draw()}).observe(home,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+ const exList=document.getElementById('exerciseList');if(exList)new MutationObserver(()=>training()).observe(exList,{childList:true,subtree:true});
+ setInterval(()=>{if(typeof page!=='undefined'&&page==='home'){const c=document.getElementById('homeSeriesCard');if(c&&!c.classList.contains('v6022'))draw();const x=read(),e=document.getElementById('v6022Elapsed');if(x.start&&e)e.textContent=elapsed(Date.now()-new Date(x.start).getTime())}},250);
+ new MutationObserver(markSaves).observe(document.body,{childList:true,subtree:true});
+ document.title='Mein Training 6.0.22';document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.21/.test(el.textContent||''))el.textContent=(el.textContent||'').replace(/Mein Training 6\.0\.21/g,'Mein Training 6.0.22')});
+ render();draw();training();markSaves();
+})();
+</script>
+
 </body></html>
