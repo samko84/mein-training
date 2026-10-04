@@ -1450,4 +1450,38 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
 })();
 </script>
 
+
+<style id="v6026-style">
+/* V6.0.26 – stable training finish + exact matching action heights */
+.guided-card .v6017-actions .guided-save,
+.guided-card .v6017-actions .exercise-status{height:58px!important;min-height:58px!important;max-height:58px!important;box-sizing:border-box!important}
+</style>
+<script id="v6026-script">
+(function(){
+  let finishDraft=null, finishFeeling=0;
+  function buildFinishDraft(s){
+    const h={started:s.started,finished:new Date().toISOString(),planId:s.planId||data.activePlanId,planName:s.planName||activePlan().name,exercises:data.exercises.map(e=>({...e,status:s.status[e.id]||'trainiert',completed:(s.status[e.id]&&s.status[e.id]!=='trainiert')?0:(s.done[e.id]||[]).filter(Boolean).length,effort:s.effort[e.id]||'',alternativeId:s.alternatives[e.id]||null,note:data.notes[e.id]||''})),doneCount:Object.values(s.done||{}).reduce((n,a)=>n+a.filter(Boolean).length,0)};
+    const replacementRows=Object.entries(s.replacements||{}).filter(([id,r])=>s.status[id]==='besetzt'&&s.alternatives[id]==='custom'&&r.name?.trim()&&Number(r.sets)>0).map(([id,r])=>({id:'replacement-'+id,name:r.name.trim(),weight:Number(r.weight)||0,sets:Number(r.sets)||0,completed:Number(r.sets)||0,reps:data.exercises.find(e=>String(e.id)===id)?.reps||12,status:'trainiert',muscles:data.exercises.find(e=>String(e.id)===id)?muscles(data.exercises.find(e=>String(e.id)===id)):[],replacementFor:data.exercises.find(e=>String(e.id)===id)?.name||''}));
+    h.exercises.push(...replacementRows);h.doneCount+=replacementRows.reduce((n,e)=>n+e.completed,0);return h;
+  }
+  function openFinish(){
+    const s=data.session;if(!s)return;
+    const count=Object.values(s.done||{}).reduce((n,a)=>n+a.filter(Boolean).length,0);
+    if(count<1){notify('Noch keine Sätze abgeschlossen.');return}
+    finishDraft=buildFinishDraft(s);finishFeeling=0;
+    const mins=Math.max(1,Math.round((new Date(finishDraft.finished)-new Date(finishDraft.started))/60000));
+    $('reportBody').innerHTML='<p>'+dt(finishDraft.started)+' · '+finishDraft.exercises.filter(e=>e.completed>0).length+' Übungen · '+finishDraft.doneCount+' Sätze · ⏱ '+mins+' Min.</p><div class="workout-feeling"><label>Wie war dein Training?</label><div class="feeling-row">'+[[1,'😫','Sehr schwach'],[2,'🙁','Schwach'],[3,'🙂','Gut'],[4,'😁','Sehr gut'],[5,'🔥','Stark']].map(([n,em,l])=>'<button type="button" class="feeling-btn" data-v6026-feeling="'+n+'"><span>'+em+'</span><small>'+l+'</small></button>').join('')+'</div></div><div class="report-actions"><button type="button" id="v6026FinishSave">Speichern</button></div>';
+    document.body.classList.remove('training-active');
+    const d=$('reportDialog'); if(d.open)d.close(); d.showModal();
+  }
+  const finish=$('finish');if(finish)finish.onclick=openFinish;
+  document.addEventListener('click',ev=>{
+    const f=ev.target.closest('[data-v6026-feeling]');if(f){ev.preventDefault();ev.stopImmediatePropagation();finishFeeling=Number(f.dataset.v6026Feeling);document.querySelectorAll('[data-v6026-feeling]').forEach(x=>x.classList.toggle('selected',x===f));return}
+    const b=ev.target.closest('#v6026FinishSave');if(b){ev.preventDefault();ev.stopImmediatePropagation();if(!finishFeeling){notify('Bitte wähle zuerst aus, wie dein Training war.');return}if(!finishDraft||!data.session)return;finishDraft.feeling=finishFeeling;data.history.push(finishDraft);data.session=null;save();finishDraft=null;finishFeeling=0;$('reportDialog').close();render();show('home');notify('Training gespeichert');return}
+  },true);
+  document.title='Mein Training 6.0.26';
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.26')});
+})();
+</script>
+
 </body></html>
