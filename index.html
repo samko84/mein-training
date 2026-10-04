@@ -1456,9 +1456,68 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
   document.getElementById('exerciseList').addEventListener('change',ev=>{const sel=ev.target.closest('[data-v6017-status]');if(!sel||sel.value!=='busy'||!data.session)return;ev.preventDefault();ev.stopImmediatePropagation();const s=data.session,id=String(sel.dataset.v6017Status),pos=s.queue.indexOf(id);if(pos<0)return;s.queue.splice(pos,1);const target=Math.min(pos+2,s.queue.length);s.queue.splice(target,0,id);s.current=Math.min(pos,Math.max(0,s.queue.length-1));s.status[id]='besetzt';s.saved&&(s.saved[id]=false);save();renderPlan();notify('Gerät besetzt – nach zwei Übungen wieder eingeplant')},true);
 
   // Version strings and cache-visible title.
-  document.title='Mein Training 6.0.19';
-  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.(14|15|16|17|18)/.test(el.textContent||''))el.textContent=(el.textContent||'').replace(/Mein Training 6\.0\.(14|15|16|17|18)/g,'Mein Training 6.0.19')});
+  document.title='Mein Training 6.0.20';
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.(14|15|16|17|18)/.test(el.textContent||''))el.textContent=(el.textContent||'').replace(/Mein Training 6\.0\.(14|15|16|17|18)/g,'Mein Training 6.0.20')});
   render();
+})();
+</script>
+
+
+<style id="v6020-style">
+/* V6.0.20 – compact series card + enforced guided controls */
+.series-card.v6020{padding:22px 22px 20px!important}
+.series-card.v6020 h3{margin:0 0 12px!important}
+.series-card.v6020 .series-picker{margin:0 0 12px!important;min-height:48px}
+.series-card.v6020 .series-actions{margin:0!important;display:block!important}
+.series-card.v6020 .series-actions button{width:auto!important;min-width:150px;min-height:46px}
+.series-card.v6020 .series-startline{margin:12px 0 10px;color:#aebfd0;font-size:15px;line-height:1.35}
+.series-card.v6020 .series-elapsed{margin:10px 0 12px;font-size:22px;font-weight:800;color:#eef6f7}
+.v6020-actions{display:grid;grid-template-columns:minmax(130px,170px) minmax(0,1fr);gap:10px;align-items:center;margin-top:16px}
+.v6020-actions .guided-save{width:auto!important;min-height:48px}
+.v6020-actions select{margin:0!important;min-height:48px}
+@media(max-width:520px){.v6020-actions{grid-template-columns:145px minmax(0,1fr)}.v6020-actions select{font-size:15px;padding-left:12px;padding-right:30px}}
+</style>
+<script id="v6020-script">
+(function(){
+  const SERIES_KEY='mein-training-series-v1';
+  const readSeries=()=>{let x={type:'bewusst-ernaehren',start:null,runs:[]};try{x={...x,...JSON.parse(localStorage.getItem(SERIES_KEY)||'{}')}}catch(e){};if(!Array.isArray(x.runs))x.runs=[];return x};
+  const writeSeries=x=>localStorage.setItem(SERIES_KEY,JSON.stringify(x));
+  const pad=n=>String(n).padStart(2,'0');
+  const elapsed=ms=>{const t=Math.max(0,Math.floor(ms/1000)),d=Math.floor(t/86400),h=Math.floor(t%86400/3600),m=Math.floor(t%3600/60),sec=t%60;return (d?d+' Tage · ':'')+pad(h)+' Std. · '+pad(m)+' Min. · '+pad(sec)+' Sek.'};
+  const startLabel=iso=>new Date(iso).toLocaleString('de-CH',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',',' ·')+' Uhr';
+  function seriesCard(){
+    let card=document.getElementById('homeSeriesCard');
+    if(!card){card=document.createElement('div');card.id='homeSeriesCard'}
+    card.className='card series-card v6020';
+    const home=document.getElementById('home'); if(home&&card.parentElement!==home)home.appendChild(card); else if(home)home.appendChild(card);
+    return card;
+  }
+  function drawSeries(){
+    const card=seriesCard(),x=readSeries(),running=!!x.start;
+    card.innerHTML='<h3>Meine Serie</h3><select class="series-picker" aria-label="Serie"><option value="bewusst-ernaehren">Bewusst ernähren</option></select>'+
+      (!running?'<div class="series-actions"><button type="button" id="v6020Start">Serie starten</button></div>':'<div class="series-elapsed" id="v6020Elapsed">'+elapsed(Date.now()-new Date(x.start).getTime())+'</div><div class="series-startline">'+startLabel(x.start)+'</div><div class="series-actions"><button type="button" class="secondary" id="v6020Stop">Serie beenden</button></div>');
+    document.getElementById('v6020Start')?.addEventListener('click',()=>{const y=readSeries();y.start=new Date().toISOString();writeSeries(y);drawSeries();notify('Serie gestartet')});
+    document.getElementById('v6020Stop')?.addEventListener('click',()=>{const y=readSeries();if(!y.start)return;const dlg=document.getElementById('seriesStopDialog');const sum=document.getElementById('seriesStopSummary');if(sum)sum.textContent='Aktuelle Dauer: '+elapsed(Date.now()-new Date(y.start).getTime());if(dlg?.showModal)dlg.showModal()});
+  }
+  // Replace the old stop-dialog persistence with a capture handler so the current series state is authoritative.
+  document.getElementById('seriesStopConfirm')?.addEventListener('click',()=>{},true);
+  document.getElementById('seriesStopDialog')?.addEventListener('close',function(){
+    if(this.returnValue!=='confirm')return;const x=readSeries();if(!x.start)return;const end=new Date(),start=new Date(x.start),ms=Math.max(0,end-start);x.runs.push({start:start.toISOString(),end:end.toISOString(),duration:ms});x.start=null;writeSeries(x);drawSeries();if(typeof page!=='undefined'&&page==='progress')progress();
+  });
+  // Enforce the agreed training UI after every render, including renders triggered by older handlers.
+  function enforceTraining(){
+    const card=document.querySelector('.guided-card'),s=(typeof data!=='undefined'?data.session:null);if(!card||!s)return;
+    const id=String(card.dataset.exercise||''),actions=card.querySelector('.guided-actions');if(!actions)return;
+    if(actions.querySelector('.v6020-actions'))return;
+    actions.innerHTML='<div class="v6020-actions"><button type="button" class="guided-save" data-v6017-save="'+id+'">Speichern</button><select class="exercise-status" data-v6017-status="'+id+'"><option value="">Status …</option><option value="busy">Gerät besetzt</option><option value="skip">Heute aussetzen</option><option value="alternative">Alternative Übung</option></select></div><div class="inline-validation" data-v6017-error>Bitte wähle zuerst deine absolvierten Sätze.</div>';
+  }
+  const target=document.getElementById('exerciseList');if(target)new MutationObserver(()=>enforceTraining()).observe(target,{childList:true,subtree:true});
+  const oldHome=renderHome;renderHome=function(){oldHome();requestAnimationFrame(drawSeries)};
+  const oldPlan=renderPlan;renderPlan=function(){oldPlan();enforceTraining()};
+  setInterval(()=>{if(typeof page!=='undefined'&&page==='home'){const x=readSeries();if(x.start){const e=document.getElementById('v6020Elapsed');if(e)e.textContent=elapsed(Date.now()-new Date(x.start).getTime())}}},1000);
+  document.title='Mein Training 6.0.20';
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.19/.test(el.textContent||''))el.textContent=(el.textContent||'').replace(/Mein Training 6\.0\.19/g,'Mein Training 6.0.20')});
+  render();drawSeries();enforceTraining();
 })();
 </script>
 
