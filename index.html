@@ -1563,6 +1563,19 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
 #seriesDeleteDialog .dialog-card h3{color:#f4f7fb!important}
 #seriesDeleteDialog .dialog-card p{color:#aebdca!important}
 #seriesDeleteCancel{background:#344d65!important;border:1px solid #4b6a83!important;color:#f4f7fb!important}
+
+/* V6.0.30 – remove invisible date input from bodyweight card flow */
+#body .weight-entry-card .weight-hidden-date{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
 </style>
 <script id="v629-script">
 (function(){
@@ -1586,8 +1599,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
   body=function(){bodyBase();const entries=document.getElementById('bodyEntries');if(entries&&!document.getElementById('bodyEntriesToggle')?.getAttribute('aria-expanded')==='true')entries.classList.add('body-entries-collapsed')};
   const toggle=document.getElementById('bodyEntriesToggle');
   if(toggle){toggle.onclick=()=>{const entries=document.getElementById('bodyEntries'),open=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!open));entries.classList.toggle('body-entries-collapsed',open)}}
-  document.title='Mein Training 6.0.29';
-  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.29')});
+  document.title='Mein Training 6.0.30';
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.30')});
   body();
 })();
 </script>
