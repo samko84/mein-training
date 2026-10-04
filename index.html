@@ -1484,4 +1484,55 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
 })();
 </script>
 
+
+<style id="v6028-style">
+/* V6.0.28 – Serienverwaltung in Fortschritt */
+.series-progress-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.series-progress-head h3{margin:0}
+.series-edit-btn{width:44px;height:44px;min-height:44px;padding:0;border-radius:14px;background:#344d65!important;border:1px solid #4b6a83!important;color:#dfeaf3!important;font-size:21px;line-height:1}
+.series-history{margin-top:18px;padding-top:16px;border-top:1px solid #344b60}
+.series-history-title{font-weight:800;margin-bottom:10px}
+.series-history-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #30465a}
+.series-history-row:last-child{border-bottom:0}
+.series-history-date{font-weight:750}
+.series-history-meta{margin-top:3px;color:#aebdca;font-size:13px}
+.series-delete-btn{width:44px;height:44px;min-height:44px;padding:0;border-radius:14px;background:#5b3440!important;border:1px solid #80505d!important;color:#ffd9df!important;font-size:18px}
+.series-edit-done{width:100%;margin-top:14px;min-height:48px;background:#344d65!important;border-color:#4b6a83!important}
+#seriesDeleteDialog .dialog-card{max-width:420px}
+#seriesDeleteDialog .series-dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+#seriesDeleteConfirm{background:#9e3f4d!important;border-color:#9e3f4d!important;color:#fff!important}
+</style>
+<script id="v6028-script">
+(function(){
+  const SERIES_KEY='nutrition';
+  let seriesEditMode=false, pendingSeriesDelete=-1;
+  function fmtSeriesDuration628(ms){ms=Math.max(0,Number(ms)||0);const total=Math.floor(ms/1000),days=Math.floor(total/86400),hrs=Math.floor(total%86400/3600),mins=Math.floor(total%3600/60),secs=total%60;if(days)return days+' Tag'+(days===1?'':'e')+' · '+hrs+' Std. · '+mins+' Min.';if(hrs)return hrs+' Std. · '+mins+' Min. · '+secs+' Sek.';return mins+' Min. · '+secs+' Sek.'}
+  function fmtSeriesDate628(iso){const d=new Date(iso);return d.toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'})+' · '+d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'})+' Uhr'}
+  function ensureDeleteDialog(){
+    if(document.getElementById('seriesDeleteDialog'))return;
+    const d=document.createElement('dialog');d.id='seriesDeleteDialog';d.innerHTML='<div class="dialog-card"><h3>Serie löschen?</h3><p class="muted">Dieser abgeschlossene Eintrag wird dauerhaft entfernt. Anzahl und persönlicher Rekord werden danach neu berechnet.</p><div class="series-dialog-actions"><button type="button" class="secondary" id="seriesDeleteCancel">Abbrechen</button><button type="button" id="seriesDeleteConfirm">Löschen</button></div></div>';document.body.appendChild(d);
+    document.getElementById('seriesDeleteCancel').onclick=()=>{pendingSeriesDelete=-1;d.close()};
+    document.getElementById('seriesDeleteConfirm').onclick=()=>{const st=data.series?.[SERIES_KEY];if(!st||pendingSeriesDelete<0)return d.close();st.history.splice(pendingSeriesDelete,1);pendingSeriesDelete=-1;save();d.close();progress();notify('Serie gelöscht')};
+  }
+  function renderSeriesProgress628(){
+    const root=document.getElementById('progressContent');if(!root)return;
+    root.querySelector('#seriesProgressCard')?.remove();
+    data.series ||= {}; data.series[SERIES_KEY] ||= {active:false,start:null,history:[]};
+    const st=data.series[SERIES_KEY],hist=st.history||[],best=hist.length?Math.max(...hist.map(x=>Number(x.duration)||0)):0;
+    const card=document.createElement('div');card.id='seriesProgressCard';card.className='card series-progress-card';
+    const rows=seriesEditMode?'<div class="series-history"><div class="series-history-title">Abgeschlossene Serien</div>'+(hist.length?hist.map((x,i)=>'<div class="series-history-row"><div><div class="series-history-date">'+fmtSeriesDuration628(x.duration)+'</div><div class="series-history-meta">'+fmtSeriesDate628(x.start)+' → '+fmtSeriesDate628(x.end)+'</div></div><button type="button" class="series-delete-btn" data-series-delete="'+i+'" aria-label="Serie löschen">🗑</button></div>').join(''):'<p class="muted sub">Keine abgeschlossenen Serien vorhanden.</p>')+'<button type="button" class="series-edit-done" id="seriesEditDone">Fertig</button></div>':'';
+    card.innerHTML='<div class="series-progress-head"><h3>Meine Serien</h3><button type="button" class="series-edit-btn" id="seriesEditToggle" aria-label="Serien bearbeiten" title="Bearbeiten">✎</button></div><div class="row"><span>Bewusst ernähren</span><span class="muted sub">Persönlicher Rekord</span></div><div class="series-record">'+(best?fmtSeriesDuration628(best):'–')+'</div>'+(hist.length?'<p class="muted sub">'+hist.length+' abgeschlossene Serie'+(hist.length===1?'':'n')+'</p>':'<p class="muted sub">Noch keine abgeschlossene Serie.</p>')+rows;
+    root.appendChild(card);ensureDeleteDialog();
+    document.getElementById('seriesEditToggle').onclick=()=>{seriesEditMode=!seriesEditMode;renderSeriesProgress628()};
+    document.getElementById('seriesEditDone')?.addEventListener('click',()=>{seriesEditMode=false;renderSeriesProgress628()});
+    card.querySelectorAll('[data-series-delete]').forEach(b=>b.onclick=()=>{pendingSeriesDelete=Number(b.dataset.seriesDelete);document.getElementById('seriesDeleteDialog').showModal()});
+  }
+  const progress627=progress;
+  progress=function(){progress627();renderSeriesProgress628()};
+  document.title='Mein Training 6.0.28';
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.28')});
+  save();render();
+})();
+</script>
+
 </body></html>
