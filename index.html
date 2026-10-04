@@ -571,7 +571,27 @@ section,.card,.hero,.training-setup,.training-settings,.settings-inner,.settings
 /* One large centered anatomy stage instead of two small figures. */
 .muscle-images{display:block!important}.muscle-view{display:none!important}.muscle-view.muscle-primary{display:flex!important;max-width:430px!important;min-height:540px!important;margin:14px auto!important;background:linear-gradient(180deg,#17283a,#122031)!important;border:1px solid #3b566d!important;border-radius:22px!important;padding:12px 14px!important}.muscle-primary .figure-stage svg{width:100%!important;max-width:330px!important;height:475px!important;margin:auto!important}.anatomy-switch{display:grid;grid-template-columns:1fr 1fr;gap:7px;max-width:430px;margin:10px auto 0}.anatomy-switch button{background:#30455a;color:#cbd9e4}.anatomy-switch button.on{background:#65d9af;color:#102b25}.calendar-card{will-change:transform,opacity}
 @media(max-width:430px){.target-dual-picker{grid-template-columns:minmax(0,155px) 18px minmax(0,105px) 34px;gap:5px}.target-comma{font-size:34px}.target-unit{font-size:18px}.target-wheel-item{font-size:21px}.target-wheel-item.selected{font-size:31px}.feeling-row{gap:4px}.feeling-btn{min-height:68px}.feeling-btn span{font-size:24px}.muscle-view.muscle-primary{min-height:500px!important}.muscle-primary .figure-stage svg{height:430px!important}}
-</style></head><body><main><header><div><div class="tag">DEIN PERSÖNLICHES TRAINING</div><h1>Mein Training <span class="success">●</span></h1></div><span class="pill">● Offline</span></header><nav class="nav bottom-nav" id="nav"><button data-page="home" class="active"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5v8a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>Start</button><button data-page="plan"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span>Training</button><button data-page="history"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 8A8 8 0 1 1 4 14M4.5 8H9M4.5 8V3.5M12 7v5l3.5 2"/></svg></span>Historie</button><button data-page="progress"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V5M16 20v-8M22 20V3"/></svg></span>Fortschritt</button><button data-page="settings"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></span>Mehr</button></nav>
+</style>
+<style id="v632-style">
+/* V6.0.32 – authoritative compact bodyweight entry layout */
+#body .weight-entry-card{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  align-items:stretch!important;
+  gap:0!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:16px!important;
+}
+#body .weight-entry-card>h3{margin:0 0 10px!important}
+#body .weight-entry-card>.weight-date-row{margin:0 0 14px!important;flex:0 0 auto!important}
+#body .weight-entry-card>.weight-stepper{margin:0 auto 6px!important;flex:0 0 auto!important}
+#body .weight-entry-card>.weight-delta{margin:0!important;min-height:0!important;height:auto!important;flex:0 0 auto!important}
+#body .weight-entry-card>#bodyLatest{margin:6px 0 12px!important;flex:0 0 auto!important}
+#body .weight-entry-card>.weight-save{margin:0!important;flex:0 0 auto!important}
+</style>
+</head><body><main><header><div><div class="tag">DEIN PERSÖNLICHES TRAINING</div><h1>Mein Training <span class="success">●</span></h1></div><span class="pill">● Offline</span></header><nav class="nav bottom-nav" id="nav"><button data-page="home" class="active"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5v8a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>Start</button><button data-page="plan"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span>Training</button><button data-page="history"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 8A8 8 0 1 1 4 14M4.5 8H9M4.5 8V3.5M12 7v5l3.5 2"/></svg></span>Historie</button><button data-page="progress"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V5M16 20v-8M22 20V3"/></svg></span>Fortschritt</button><button data-page="settings"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></span>Mehr</button></nav>
 <section id="home" class="active"><div class="hero"><span class="pill" id="homePlanName">GANZKÖRPER · JFCB</span><h2 style="margin-top:12px">Bereit für dein Training?</h2><p class="muted">Deine Übungen, Gewichte und Einstellungen an einem Ort.</p><button id="goPlan">Training öffnen →</button><p id="homeNext" class="sub"></p></div><div class="grid2"><div class="stat"><small>Trainings gesamt</small><b id="homeCount">0</b></div><div class="stat"><small>Diese Woche</small><b id="homeWeek">0</b></div></div><div class="card"><h3>Dein Trainingsrhythmus</h3><div id="weekPlan"></div><div class="divider"></div><div id="homeMilestone"></div></div><div class="card"><h3>Zuletzt trainierte Muskelgruppen</h3><div id="homeMuscles" class="muscles"></div></div><div id="homeCalendar"></div></section>
 <section id="plan"><div class="card"><h3>Meine Trainingspläne</h3><p class="muted sub">Dein aktueller Plan bleibt gespeichert. Du kannst weitere Pläne erstellen und wechseln.</p><div id="planManager"></div><div class="wrap" style="margin-top:12px"><button id="createPlan">+ Neuer Plan</button><button id="photoPlan" class="secondary">📷 Plan fotografieren</button></div><div id="planEditor" style="display:none;margin-top:14px"></div></div><div class="card training-setup"><h3>Trainingsorganisation</h3><details class="training-settings"><summary><span><b>Wochenplanung</b><small id="weekPlanSummary">Trainingstage und Wochenziel</small></span><span class="chev">›</span></summary><div class="settings-inner"><p class="muted sub">Wähle deine geplanten Trainingstage.</p><div id="weekdayChoices" class="wrap"></div><label for="weeklyTarget">Trainingsziel pro Woche</label><select id="weeklyTarget"><option value="1">1 Training</option><option value="2">2 Trainings</option><option value="3">3 Trainings</option><option value="4">4 Trainings</option><option value="5">5 Trainings</option><option value="6">6 Trainings</option><option value="7">7 Trainings</option></select></div></details><div class="divider"></div><details class="training-settings"><summary><span><b>Übungen verwalten</b><small id="exerciseManageSummary">Übungen hinzufügen und bearbeiten</small></span><span class="chev">›</span></summary><div class="settings-inner"><label>Neue Übung</label><input id="newName" placeholder="Name der Übung"><div class="grid2"><div><label>Startgewicht (kg)</label><input id="newWeight" type="number" min="0" step="0.5" value="0"></div><div><label>Muskelgruppe</label><select id="newMuscle"></select></div></div><button id="addExercise" style="margin-top:12px">Übung hinzufügen</button><div id="manageExercises"></div></div></details></div><div class="row"><h2>Dein Trainingsplan</h2><span class="pill" id="sessionLabel">Bereit</span></div><div class="card"><div class="wrap"><button id="start">Training starten</button><button id="finish" class="secondary" disabled>Training abschliessen</button></div><p class="muted sub" id="sessionInfo">Noch kein Training gestartet</p><div class="bartrack"><div class="barfill" id="sessionBar" style="width:0%"></div></div><p class="sub muted" id="sessionProgress"></p></div><div id="exerciseList"></div></section>
 <section id="history"><h2>Trainingshistorie</h2><p class="muted sub">Beim Öffnen erscheint dein neuester Trainingstag. Nach rechts wischen = älter, nach links = neuer.</p><div id="historyCard"></div></section>
@@ -1564,7 +1584,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
 #seriesDeleteDialog .dialog-card p{color:#aebdca!important}
 #seriesDeleteCancel{background:#344d65!important;border:1px solid #4b6a83!important;color:#f4f7fb!important}
 
-/* V6.0.31 – remove invisible date input from bodyweight card flow */
+/* V6.0.32 – remove invisible date input from bodyweight card flow */
 #body .weight-entry-card .weight-hidden-date{
   position:absolute!important;
   width:1px!important;
@@ -1577,7 +1597,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
   pointer-events:none!important;
 }
 
-/* V6.0.31 – body date input fully outside the entry card flow */
+/* V6.0.32 – body date input fully outside the entry card flow */
 #body>.weight-hidden-date{position:fixed!important;left:-9999px!important;top:-9999px!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;opacity:0!important;pointer-events:none!important}
 #body .weight-date-row{margin-bottom:10px!important}
 #body .weight-stepper{margin-top:0!important;margin-bottom:6px!important}
@@ -1604,8 +1624,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
   body=function(){bodyBase();const entries=document.getElementById('bodyEntries');if(entries&&!document.getElementById('bodyEntriesToggle')?.getAttribute('aria-expanded')==='true')entries.classList.add('body-entries-collapsed')};
   const toggle=document.getElementById('bodyEntriesToggle');
   if(toggle){toggle.onclick=()=>{const entries=document.getElementById('bodyEntries'),open=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!open));entries.classList.toggle('body-entries-collapsed',open)}}
-  document.title='Mein Training 6.0.31';
-  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.31')});
+  document.title='Mein Training 6.0.32';
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.32')});
   body();
 })();
 </script>
