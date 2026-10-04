@@ -1339,7 +1339,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
   const oldRender=renderPlan;renderPlan=function(){oldRender();const card=document.querySelector('.guided-card'),s=data.session;if(!card||!s)return;const id=String(card.dataset.exercise||'');const actions=card.querySelector('.guided-actions');if(!actions)return;actions.innerHTML='<div class="v6017-actions"><button type="button" class="guided-save" data-v6017-save="'+id+'">Speichern</button><select class="exercise-status" data-v6017-status="'+id+'"><option value="">Status …</option><option value="busy">Gerät besetzt</option><option value="skip">Heute aussetzen</option><option value="alternative">Alternative Übung</option></select></div><div class="inline-validation" data-v6017-error>Bitte wähle zuerst deine absolvierten Sätze.</div>'};
 
   let pendingId=null;const dlg=document.getElementById('confirm6017');
-  function selectedSets(id){const a=(typeof pendingSets!=='undefined'&&pendingSets[id])?pendingSets[id]:(data.session?.done?.[id]||[]);return a}
+  function selectedSets(id){const card=document.querySelector('.guided-card[data-exercise=\"'+CSS.escape(String(id))+'\"]')||document.querySelector('.guided-card');const buttons=card?[...card.querySelectorAll('[data-set=\"'+CSS.escape(String(id))+'\"]')]:[];if(buttons.length)return buttons.sort((a,b)=>Number(a.dataset.i)-Number(b.dataset.i)).map(b=>b.classList.contains('done')||b.classList.contains('pending'));return [...(data.session?.done?.[id]||[])]}
   document.getElementById('exerciseList').addEventListener('click',ev=>{const b=ev.target.closest('[data-v6017-save]');if(!b||!data.session)return;ev.preventDefault();ev.stopImmediatePropagation();const id=String(b.dataset.v6017Save),a=selectedSets(id),card=b.closest('.guided-card');if(!a.some(Boolean)){card.querySelector('[data-v6017-error]')?.classList.add('show');card.querySelector('.sets')?.classList.add('validation-pulse');setTimeout(()=>card.querySelector('.sets')?.classList.remove('validation-pulse'),700);return}const e=data.exercises.find(x=>String(x.id)===id);pendingId=id;const n=a.filter(Boolean).length,eff=data.session.effort?.[id];document.getElementById('confirm6017Summary').innerHTML='<b>'+esc(e.name)+'</b><br>'+(e.weightMode==='bodyweight'?'Körpergewicht':fmt(e.weight)+' kg')+' · '+n+' von '+(e.sets||3)+' Sätzen'+(eff?' · '+v6EffortLabel(eff):'');if(dlg.showModal)dlg.showModal();else if(confirm('Übung speichern?'))document.getElementById('confirm6017Save').click()},true);
   document.getElementById('confirm6017Cancel').onclick=()=>{pendingId=null;dlg.close()};
   document.getElementById('confirm6017Save').onclick=()=>{if(!pendingId||!data.session)return;const id=pendingId,a=selectedSets(id);data.session.done[id]=[...a];data.session.saved||={};data.session.saved[id]=true;const e=data.exercises.find(x=>String(x.id)===id);if(e){e.weightMode=data.weightModes?.[id]||e.weightMode}if(data.session.current<data.session.queue.length-1)data.session.current++;else data.session.current=data.session.queue.length;pendingId=null;save();dlg.close();renderPlan();notify('Übung gespeichert')};
@@ -1395,10 +1395,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
 
 
 <style id="v6023-style">
-/* V6.0.24 – focused patch on top of the stable V6.0.18 base */
-.guided-card .v6017-actions{display:flex!important;flex-direction:column!important;gap:12px!important;margin-top:18px!important}
-.guided-card .v6017-actions .guided-save{width:100%!important;min-height:58px!important;background:#2f9e55!important;border-color:#2f9e55!important;color:#fff!important;font-weight:800!important}
-.guided-card .v6017-actions .exercise-status{width:100%!important;min-height:58px!important;background:#344d65!important;border:1px solid #4b6a83!important;color:#f4f7fb!important;border-radius:16px!important;padding:0 18px!important;font-size:17px!important}
+/* V6.0.25 – final guided-training correction */
+.guided-card .guided-actions{display:grid!important;grid-template-columns:1fr!important;width:100%!important;gap:10px!important}
+.guided-card .v6017-actions{grid-column:1/-1!important;display:flex!important;flex-direction:column!important;gap:12px!important;margin-top:18px!important;width:100%!important;max-width:none!important}
+.guided-card .inline-validation{grid-column:1/-1!important;width:100%!important}
+.guided-card .v6017-actions .guided-save{display:block!important;width:100%!important;max-width:none!important;min-height:58px!important;background:#2f9e55!important;border-color:#2f9e55!important;color:#fff!important;font-weight:800!important}
+.guided-card .v6017-actions .exercise-status{display:block!important;width:100%!important;max-width:none!important;min-height:58px!important;background:#344d65!important;border:1px solid #4b6a83!important;color:#f4f7fb!important;border-radius:16px!important;padding:0 18px!important;font-size:17px!important}
 .inline-validation{margin-top:10px!important;text-align:center}
 /* Save actions are green app-wide; widths stay untouched outside guided training. */
 #saveBody,#targetWeightSave,#editSave,#builderSave,#confirm6017Save,button[id*="Save"],button[class*="save" i]{background:#2f9e55;border-color:#2f9e55;color:#fff}
@@ -1442,8 +1444,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
   const planBase=renderPlan;
   renderPlan=function(){planBase();const card=document.querySelector('.guided-card'),s=data.session;if(!card||!s)return;const id=String(card.dataset.exercise||''),actions=card.querySelector('.guided-actions');if(!actions)return;actions.innerHTML='<div class="v6017-actions"><button type="button" class="guided-save" data-v6017-save="'+id+'">Speichern</button><select class="exercise-status" data-v6017-status="'+id+'"><option value="">Status …</option><option value="busy">Gerät besetzt</option><option value="skip">Heute aussetzen</option><option value="alternative">Alternative Übung</option></select></div><div class="inline-validation" data-v6017-error>Bitte wähle mindestens einen absolvierten Satz.</div>'};
 
-  document.title='Mein Training 6.0.24';
-  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.24')});
+  document.title='Mein Training 6.0.25';
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.25')});
   save();render();
 })();
 </script>
