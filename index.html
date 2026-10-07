@@ -1630,4 +1630,85 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}body>main,.page,
 })();
 </script>
 
+
+<style id="v633-style">
+/* V6.0.33 – bodyweight stepper/focus stability + clear plan-vs-actual forecast */
+html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+#body{max-width:100%;overflow-x:hidden!important}
+#body .weight-value-wrap input{font-size:30px!important}
+.weight-plan-card{margin-top:12px;padding:14px;border-radius:14px;background:#263a4f}
+.weight-plan-title{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:9px}
+.weight-plan-title b{font-size:15px}.weight-plan-date{color:#7ce6bd;font-weight:850;text-align:right}
+.weight-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.weight-plan-mini{background:#203247;border-radius:11px;padding:10px}.weight-plan-mini small{display:block}.weight-plan-mini b{display:block;margin-top:3px;font-size:15px}
+.weight-legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 0;font-size:11px;color:#aabaca}.weight-legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}.weight-legend .actual{background:#65d9af}.weight-legend .plan{border-top:2px dashed #86a9c4;height:0}.weight-legend .goal{border-top:2px dashed #d6bd62;height:0}
+@media(max-width:430px){.weight-plan-grid{grid-template-columns:1fr 1fr}.weight-plan-date{max-width:48%}}
+</style>
+<script id="v633-script">
+(function(){
+  const parseKg=()=>{const raw=String(document.getElementById('bodyKg').value||'').trim().replace(',','.');return raw===''?NaN:Number(raw)};
+  function selectedReference(){
+    const all=(data.bodyWeights||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+    const selected=document.getElementById('bodyDate').value||today();
+    return all.filter(x=>x.date<=selected).at(-1)||all.at(-1)||null;
+  }
+  function setBodyStep(delta){
+    const input=document.getElementById('bodyKg'); let v=parseKg();
+    if(!Number.isFinite(v)||v<20||v>350){const ref=selectedReference();v=ref?Number(ref.kg):80}
+    v=Math.round((v+delta)*10)/10; v=Math.max(20,Math.min(350,v));
+    input.value=v.toFixed(1); bodyFeedback();
+  }
+  document.getElementById('bodyMinus').onclick=()=>setBodyStep(-0.1);
+  document.getElementById('bodyPlus').onclick=()=>setBodyStep(0.1);
+  const kgInput=document.getElementById('bodyKg');
+  kgInput.addEventListener('focus',()=>{document.documentElement.style.overflowX='hidden';document.body.style.overflowX='hidden'});
+  kgInput.addEventListener('blur',()=>{const y=window.scrollY;requestAnimationFrame(()=>window.scrollTo(0,y));setTimeout(()=>window.scrollTo(0,y),80)});
+
+  function dayDiff(a,b){return (new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000}
+  function datePlusDays(date,days){let d=new Date(date+'T12:00:00');d.setDate(d.getDate()+Math.round(days));return d}
+  function prettyDate(d){return d.toLocaleDateString('de-CH',{day:'2-digit',month:'long',year:'numeric'})}
+  function trendPerWeek(w){
+    if(w.length<2)return null; let recent=w.slice(-8), n=recent.length;
+    let x=recent.map(z=>dayDiff(recent[0].date,z.date)/7), y=recent.map(z=>Number(z.kg));
+    let mx=x.reduce((a,b)=>a+b,0)/n,my=y.reduce((a,b)=>a+b,0)/n,den=x.reduce((a,v)=>a+(v-mx)*(v-mx),0);
+    if(!den)return null; return x.reduce((a,v,i)=>a+(v-mx)*(y[i]-my),0)/den;
+  }
+  bodyLine=function(w){
+    if(!w.length)return '<p class="muted">Noch keine Gewichtseinträge.</p>';
+    w=w.slice().sort((a,b)=>a.date.localeCompare(b.date));
+    let first=Number(w[0].kg),last=Number(w.at(-1).kg),delta=last-first,target=Number(data.targetWeight),hasTarget=Number.isFinite(target)&&target>=20;
+    const stats='<div class="grid2"><div class="stat"><small>Startgewicht</small><b>'+fmt(first)+' kg</b></div><div class="stat"><small>Aktuell</small><b>'+fmt(last)+' kg</b><small>'+(delta>0?'+':'')+fmt(delta)+' kg Veränderung</small></div></div>';
+    let plan='';
+    if(hasTarget){
+      const rangeLow=Math.round(last*.005*10)/10, rangeHigh=Math.round(last*.01*10)/10;
+      const pace=Math.round(last*.007*10)/10; // middle of the 0.5–1% orientation range
+      const remaining=Math.max(0,last-target), weeks=pace>0?remaining/pace:0, goalDate=datePlusDays(w.at(-1).date,weeks*7);
+      const elapsedWeeks=Math.max(0,dayDiff(w[0].date,w.at(-1).date)/7), plannedNow=Math.max(target,first-pace*elapsedWeeks), diff=Math.round((last-plannedNow)*10)/10;
+      const tr=trendPerWeek(w); let trendText='Noch nicht genügend Messungen'; let trendDate='–';
+      if(tr!==null){trendText=(tr>0?'+':'')+fmt(tr)+' kg/Woche'; if(tr<-.05&&last>target)trendDate=prettyDate(datePlusDays(w.at(-1).date,((last-target)/(-tr))*7)); else if(last<=target)trendDate='Ziel erreicht'; else trendDate='Mit aktuellem Trend nicht berechenbar'}
+      plan='<div class="weight-plan-card"><div class="weight-plan-title"><div><b>Dein Weg zu '+fmt(target)+' kg</b><div class="muted sub">Orientierung: '+fmt(rangeLow)+'–'+fmt(rangeHigh)+' kg/Woche</div></div><div class="weight-plan-date">'+prettyDate(goalDate)+'</div></div><div class="muted sub">Plan mit <b>'+fmt(pace)+' kg/Woche</b> · Soll aktuell '+fmt(plannedNow)+' kg · Ist '+fmt(last)+' kg</div><div class="weight-plan-grid"><div class="weight-plan-mini"><small>Abweichung zum Plan</small><b>'+(diff>0?'+':'')+fmt(diff)+' kg</b></div><div class="weight-plan-mini"><small>Dein bisheriger Trend</small><b>'+trendText+'</b></div></div><div class="muted sub" style="margin-top:9px">Bei deinem bisherigen Trend: <b>'+trendDate+'</b></div></div>';
+    }
+    if(w.length===1)return stats+plan+'<p class="muted sub">Für eine Verlaufslinie brauchst du mindestens zwei Messungen.</p>';
+    let values=w.map(x=>Number(x.kg));if(hasTarget)values.push(target);
+    let min=Math.floor(Math.min(...values))-1,max=Math.ceil(Math.max(...values))+1;if(max<=min)max=min+2;
+    let W=560,H=260,L=42,R=17,T=23,B=43,x=i=>L+i*(W-L-R)/(w.length-1),y=v=>T+(H-T-B)*(max-v)/(max-min);
+    let coords=w.map((d,i)=>[x(i),y(Number(d.kg))]),path=coords.map(([a,b],i)=>(i?'L':'M')+a.toFixed(1)+','+b.toFixed(1)).join(' ');
+    let grid='';for(let kg=min;kg<=max;kg++){let yy=y(kg);grid+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="#3b5265" stroke-dasharray="3 5"/><text x="'+(L-6)+'" y="'+(yy+4)+'" text-anchor="end" fill="#aabaca" font-size="11">'+kg+'</text>'}
+    let targetLine='',planLine='';
+    if(hasTarget){
+      let ty=y(target);targetLine='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+ty+'" y2="'+ty+'" stroke="#d6bd62" stroke-width="2" stroke-dasharray="7 6"/><text x="'+(W-R)+'" y="'+(ty-7)+'" text-anchor="end" fill="#e8cf72" font-size="11" font-weight="700">Ziel '+fmt(target)+' kg</text>';
+      const pace=Math.round(last*.007*10)/10, totalWeeks=Math.max(.1,(first-target)/pace), startD=w[0].date;
+      let planPts=w.map((d,i)=>{let pw=Math.max(target,first-pace*Math.max(0,dayDiff(startD,d.date)/7));return x(i).toFixed(1)+','+y(pw).toFixed(1)}).join(' ');
+      planLine='<polyline fill="none" stroke="#86a9c4" stroke-width="2" stroke-dasharray="6 6" points="'+planPts+'"/>';
+    }
+    let dots=coords.map(([xx,yy],i)=>'<circle cx="'+xx+'" cy="'+yy+'" r="5" fill="#8ee9c1" stroke="#152a35" stroke-width="2"/><text x="'+xx+'" y="'+(yy-12)+'" fill="#eaf9f1" font-size="12" text-anchor="middle" font-weight="bold">'+fmt(w[i].kg)+'</text>').join('');
+    let labels=w.map((d,i)=>'<text x="'+x(i)+'" y="'+(H-10)+'" text-anchor="middle" fill="#b3c5d0" font-size="11">'+d.date.slice(8,10)+'.'+d.date.slice(5,7)+'.</text>').join('');
+    return stats+plan+'<div class="weight-legend"><span><i class="actual"></i>Ist</span><span><i class="plan"></i>Soll</span><span><i class="goal"></i>Zielgrenze</span></div><div class="weight-line"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Körpergewicht: Ist, Soll und Zielgewicht">'+grid+targetLine+planLine+'<path d="'+path+'" fill="none" stroke="#65d9af" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+dots+labels+'</svg></div>';
+  };
+  const oldBody633=body; body=function(){oldBody633();document.getElementById('bodyGraph').innerHTML=bodyLine((data.bodyWeights||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)))};
+  document.title='Mein Training 6.0.33';
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training 6.0.33')});
+  body();
+})();
+</script>
 </body></html>
