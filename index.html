@@ -1712,7 +1712,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}
 })();
 </script>
 <style id="v634-style">
-/* V6.0.34 – free exercise choice, workout/exercise timing, latest bodyweight */
+/* V6.0.35 – busy exercise stays in place until user chooses another open exercise */
 .exercise-choose-btn{width:100%!important;min-height:54px!important;margin-top:0!important;background:#344d65!important;border:1px solid #4b6a83!important;color:#f4f7fb!important;font-weight:750!important}
 #exerciseChooser634{background:transparent;border:0;padding:0;max-width:min(92vw,560px);width:min(92vw,560px);color:#eef6f7}
 #exerciseChooser634::backdrop{background:rgba(4,10,18,.72);backdrop-filter:blur(3px)}
@@ -1733,7 +1733,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}
 </style>
 <script id="v634-script">
 (function(){
-  const VERSION='6.0.34';
+  const VERSION='6.0.35';
   let chooserReason634='manual', timeExerciseId634=null, finishDraft634=null, finishFeeling634=0;
 
   function ensureTiming634(s){
@@ -1789,9 +1789,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}
   }
   function showChooser634(reason='manual'){
     const s=data.session;if(!s)return;ensureTiming634(s);chooserReason634=reason;s.chooserOpen=true;pauseExerciseTimer634(s);save();
-    const list=openExercises634(),currentId=String(s.queue[s.current]??'');
-    document.getElementById('chooserText634').textContent=reason==='busy'?'Gerät besetzt – wähle jetzt einfach eine freie Übung.':'Wähle eine beliebige noch offene Übung.';
-    document.getElementById('chooserList634').innerHTML=list.length?list.map(e=>'<button type="button" class="chooser-item" data-choose-exercise634="'+esc(e.id)+'"><span><b>'+esc(e.name)+'</b><br><small class="muted">'+esc(muscles(e).join(', '))+(String(e.id)===currentId?' · aktuell':'')+'</small></span><span class="chooser-device">'+(e.number?'Gerät '+esc(e.number):'Übung')+'</span></button>').join(''):'<p class="muted">Keine offenen Übungen mehr.</p>';
+    const currentId=String(s.queue[s.current]??'');
+    const list=openExercises634().filter(e=>reason!=='busy'||String(e.id)!==currentId);
+    document.getElementById('chooserText634').textContent=reason==='busy'?'Gerät besetzt – wähle jetzt eine andere freie Übung.':'Wähle eine beliebige noch offene Übung.';
+    document.getElementById('chooserList634').innerHTML=list.length?list.map(e=>'<button type="button" class="chooser-item" data-choose-exercise634="'+esc(e.id)+'"><span><b>'+esc(e.name)+'</b><br><small class="muted">'+esc(muscles(e).join(', '))+'</small></span><span class="chooser-device">'+(e.number?'Gerät '+esc(e.number):'Übung')+'</span></button>').join(''):'<p class="muted">Keine andere offene Übung verfügbar.</p>';
     const d=ensureChooser634();if(!d.open)d.showModal();
   }
   ensureChooser634();
@@ -1815,8 +1816,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}
     if(sel.value==='busy'){
       ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
       const s=data.session,id=String(sel.dataset.v6017Status);ensureTiming634(s);pauseExerciseTimer634(s);s.status[id]='besetzt';
-      const pos=s.queue.indexOf(id);if(pos>=0){s.queue.splice(pos,1);s.queue.push(id);s.current=Math.min(pos,Math.max(0,s.queue.length-1))}
-      s.chooserOpen=true;save();renderPlan();showChooser634('busy');notify('Gerät zurückgestellt');return;
+      // Do not change queue/current here. The user explicitly chooses what to do next.
+      s.chooserOpen=true;save();showChooser634('busy');notify('Gerät zurückgestellt – wähle eine freie Übung');return;
     }
     if(sel.value==='skip')pauseExerciseTimer634(data.session);
   },true);
