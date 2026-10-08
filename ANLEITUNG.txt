@@ -1,4 +1,4 @@
-Mein Training 6.0.8
+Mein Training 6.0.34
 
 Änderungen:
 - Flache, hellere Eingabefelder statt dunkler vertiefter Felder

@@ -1711,4 +1711,179 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}
   body();
 })();
 </script>
+<style id="v634-style">
+/* V6.0.34 – free exercise choice, workout/exercise timing, latest bodyweight */
+.exercise-choose-btn{width:100%!important;min-height:54px!important;margin-top:0!important;background:#344d65!important;border:1px solid #4b6a83!important;color:#f4f7fb!important;font-weight:750!important}
+#exerciseChooser634{background:transparent;border:0;padding:0;max-width:min(92vw,560px);width:min(92vw,560px);color:#eef6f7}
+#exerciseChooser634::backdrop{background:rgba(4,10,18,.72);backdrop-filter:blur(3px)}
+#exerciseChooser634 .chooser-card{background:#1d3044;border:1px solid #3d5870;border-radius:20px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.42)}
+#exerciseChooser634 h3{margin:0 0 7px}
+#exerciseChooser634 .chooser-list{display:grid;gap:8px;margin-top:15px;max-height:52vh;overflow:auto;padding-right:2px}
+#exerciseChooser634 .chooser-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:54px;text-align:left;background:#2c4359!important;border:1px solid #48657c!important;color:#f0f6fa!important}
+#exerciseChooser634 .chooser-item span{min-width:0}.chooser-device{font-size:12px;color:#94e7c5;white-space:nowrap}
+#exerciseChooser634 .chooser-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
+#exerciseChooser634 .chooser-actions button{min-height:52px}
+.time-progress-card .time-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 16px}
+.time-progress-card .time-stat{background:#263b50;border-radius:13px;padding:12px;min-width:0}
+.time-progress-card .time-stat small{display:block;color:#aebdca;margin-bottom:4px}.time-progress-card .time-stat b{display:block;font-size:17px;overflow-wrap:anywhere}
+.time-progress-card select{width:100%;min-height:50px;margin-top:7px}
+.time-progress-card .exercise-time-note{margin-top:10px}
+.history-duration-pill{white-space:nowrap}
+@media(max-width:430px){.time-progress-card .time-stats{grid-template-columns:1fr 1fr}.time-progress-card .time-stat:last-child{grid-column:1/-1}.chooser-actions{grid-template-columns:1fr!important}}
+</style>
+<script id="v634-script">
+(function(){
+  const VERSION='6.0.34';
+  let chooserReason634='manual', timeExerciseId634=null, finishDraft634=null, finishFeeling634=0;
+
+  function ensureTiming634(s){
+    if(!s)return;
+    s.exerciseTimeMs ||= {};
+    s.exerciseTimerId ||= null;
+    s.exerciseTimerStartedAt ||= null;
+    s.saved ||= {};
+    s.chooserOpen ||= false;
+  }
+  function pauseExerciseTimer634(s){
+    if(!s)return;ensureTiming634(s);
+    const id=s.exerciseTimerId,start=s.exerciseTimerStartedAt;
+    if(id&&start){
+      const elapsed=Math.max(0,Date.now()-new Date(start).getTime());
+      s.exerciseTimeMs[String(id)]=(Number(s.exerciseTimeMs[String(id)])||0)+elapsed;
+    }
+    s.exerciseTimerId=null;s.exerciseTimerStartedAt=null;
+  }
+  function startExerciseTimer634(s,id){
+    if(!s||id==null)return;ensureTiming634(s);id=String(id);
+    if(String(s.exerciseTimerId||'')===id&&s.exerciseTimerStartedAt)return;
+    pauseExerciseTimer634(s);s.exerciseTimerId=id;s.exerciseTimerStartedAt=new Date().toISOString();save();
+  }
+  function currentExerciseTime634(s,id){
+    if(!s)return 0;ensureTiming634(s);id=String(id);let ms=Number(s.exerciseTimeMs[id])||0;
+    if(String(s.exerciseTimerId||'')===id&&s.exerciseTimerStartedAt)ms+=Math.max(0,Date.now()-new Date(s.exerciseTimerStartedAt).getTime());
+    return ms;
+  }
+  function duration634(ms,withSeconds=false){
+    ms=Math.max(0,Number(ms)||0);const sec=Math.floor(ms/1000),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+    if(h)return h+' Std. '+m+' Min.'+(withSeconds?' '+s+' Sek.':'');
+    if(m)return m+' Min.'+(withSeconds?' '+s+' Sek.':'');
+    return s+' Sek.';
+  }
+  function historyDuration634(h){
+    return Number.isFinite(Number(h?.durationMs))&&Number(h.durationMs)>0?Number(h.durationMs):0;
+  }
+  function openExercises634(){
+    const s=data.session;if(!s)return[];ensureTiming634(s);
+    return data.exercises.filter(e=>{
+      const id=String(e.id),done=!!s.saved[id],skipped=s.status[id]==='ausgelassen';
+      return !done&&!skipped;
+    });
+  }
+  function ensureChooser634(){
+    let d=document.getElementById('exerciseChooser634');if(d)return d;
+    d=document.createElement('dialog');d.id='exerciseChooser634';d.innerHTML='<div class="chooser-card"><h3>Übung wählen</h3><p class="muted sub" id="chooserText634">Wähle eine freie Übung aus deinem aktuellen Training.</p><div class="chooser-list" id="chooserList634"></div><div class="chooser-actions"><button type="button" class="secondary" id="chooserContinue634">Nächste Übung</button><button type="button" class="secondary" id="chooserClose634">Schliessen</button></div></div>';document.body.appendChild(d);
+    document.getElementById('chooserClose634').onclick=()=>{const s=data.session;if(s){s.chooserOpen=false;save()}d.close();renderPlan()};
+    document.getElementById('chooserContinue634').onclick=()=>{const s=data.session;if(s){s.chooserOpen=false;save()}d.close();renderPlan()};
+    document.getElementById('chooserList634').onclick=ev=>{const b=ev.target.closest('[data-choose-exercise634]');if(!b||!data.session)return;const s=data.session,id=String(b.dataset.chooseExercise634);ensureTiming634(s);pauseExerciseTimer634(s);const pos=s.queue.indexOf(id),at=Math.min(s.current,s.queue.length);if(pos>=0&&pos!==at){s.queue.splice(pos,1);s.queue.splice(Math.min(at,s.queue.length),0,id)}s.current=Math.max(0,s.queue.indexOf(id));s.chooserOpen=false;save();d.close();renderPlan();notify('Übung ausgewählt')};
+    return d;
+  }
+  function showChooser634(reason='manual'){
+    const s=data.session;if(!s)return;ensureTiming634(s);chooserReason634=reason;s.chooserOpen=true;pauseExerciseTimer634(s);save();
+    const list=openExercises634(),currentId=String(s.queue[s.current]??'');
+    document.getElementById('chooserText634').textContent=reason==='busy'?'Gerät besetzt – wähle jetzt einfach eine freie Übung.':'Wähle eine beliebige noch offene Übung.';
+    document.getElementById('chooserList634').innerHTML=list.length?list.map(e=>'<button type="button" class="chooser-item" data-choose-exercise634="'+esc(e.id)+'"><span><b>'+esc(e.name)+'</b><br><small class="muted">'+esc(muscles(e).join(', '))+(String(e.id)===currentId?' · aktuell':'')+'</small></span><span class="chooser-device">'+(e.number?'Gerät '+esc(e.number):'Übung')+'</span></button>').join(''):'<p class="muted">Keine offenen Übungen mehr.</p>';
+    const d=ensureChooser634();if(!d.open)d.showModal();
+  }
+  ensureChooser634();
+
+  const renderPlan634Base=renderPlan;
+  renderPlan=function(){
+    renderPlan634Base();const s=data.session;if(!s)return;ensureTiming634(s);
+    const card=document.querySelector('.guided-card');
+    if(!card){pauseExerciseTimer634(s);save();return}
+    const id=String(card.dataset.exercise||'');
+    const actions=card.querySelector('.v6017-actions');
+    if(actions&&!actions.querySelector('[data-choose-now634]')){
+      const b=document.createElement('button');b.type='button';b.className='exercise-choose-btn';b.dataset.chooseNow634='1';b.textContent='Übung wählen';actions.appendChild(b);
+    }
+    if(!s.chooserOpen)startExerciseTimer634(s,id);
+  };
+
+  // "Gerät besetzt" no longer rotates a small group. Defer it, then show every open exercise.
+  document.addEventListener('change',ev=>{
+    const sel=ev.target.closest?.('[data-v6017-status]');if(!sel||!data.session)return;
+    if(sel.value==='busy'){
+      ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
+      const s=data.session,id=String(sel.dataset.v6017Status);ensureTiming634(s);pauseExerciseTimer634(s);s.status[id]='besetzt';
+      const pos=s.queue.indexOf(id);if(pos>=0){s.queue.splice(pos,1);s.queue.push(id);s.current=Math.min(pos,Math.max(0,s.queue.length-1))}
+      s.chooserOpen=true;save();renderPlan();showChooser634('busy');notify('Gerät zurückgestellt');return;
+    }
+    if(sel.value==='skip')pauseExerciseTimer634(data.session);
+  },true);
+
+  document.addEventListener('click',ev=>{
+    const choose=ev.target.closest?.('[data-choose-now634]');if(choose&&data.session){ev.preventDefault();ev.stopImmediatePropagation();const s=data.session;ensureTiming634(s);const cur=String(document.querySelector('.guided-card')?.dataset.exercise||'');if(cur&&!s.saved[cur]&&!s.status[cur])s.status[cur]='offen';showChooser634('manual');return}
+  },true);
+
+  // On a successful exercise save, finish that exercise timer and restore its normal status.
+  const confirmBtn634=document.getElementById('confirm6017Save');
+  if(confirmBtn634&&typeof confirmBtn634.onclick==='function'){
+    const oldConfirm634=confirmBtn634.onclick;
+    confirmBtn634.onclick=function(ev){const s=data.session,id=String(document.querySelector('.guided-card')?.dataset.exercise||'');if(s&&id){ensureTiming634(s);pauseExerciseTimer634(s);s.status[id]='trainiert'}return oldConfirm634.call(this,ev)};
+  }
+
+  function buildFinishDraft634(s){
+    ensureTiming634(s);pauseExerciseTimer634(s);const finished=new Date().toISOString();
+    const h={started:s.started,finished,durationMs:Math.max(0,new Date(finished)-new Date(s.started)),planId:s.planId||data.activePlanId,planName:s.planName||activePlan().name,exercises:data.exercises.map(e=>{const id=String(e.id),completed=(s.done[id]||[]).filter(Boolean).length,saved=!!s.saved[id],st=s.status[id]||(saved?'trainiert':'offen');return {...e,status:st,completed:(st==='trainiert'&&saved)?completed:0,effort:s.effort[id]||'',alternativeId:s.alternatives[id]||null,note:data.notes[id]||'',durationMs:Math.round(Number(s.exerciseTimeMs[id])||0)}}),doneCount:Object.values(s.done||{}).reduce((n,a)=>n+a.filter(Boolean).length,0)};
+    const replacementRows=Object.entries(s.replacements||{}).filter(([id,r])=>s.alternatives[id]==='custom'&&r.name?.trim()&&Number(r.sets)>0).map(([id,r])=>({id:'replacement-'+id,name:r.name.trim(),weight:Number(r.weight)||0,sets:Number(r.sets)||0,completed:Number(r.sets)||0,reps:data.exercises.find(e=>String(e.id)===id)?.reps||12,status:'trainiert',muscles:data.exercises.find(e=>String(e.id)===id)?muscles(data.exercises.find(e=>String(e.id)===id)):[],replacementFor:data.exercises.find(e=>String(e.id)===id)?.name||'',durationMs:0}));
+    h.exercises.push(...replacementRows);h.doneCount+=replacementRows.reduce((n,e)=>n+e.completed,0);return h;
+  }
+  function openFinish634(){
+    const s=data.session;if(!s)return;const count=Object.values(s.done||{}).reduce((n,a)=>n+a.filter(Boolean).length,0);if(count<1){notify('Noch keine Sätze abgeschlossen.');return}
+    finishDraft634=buildFinishDraft634(s);finishFeeling634=0;
+    $('reportBody').innerHTML='<div class="card" style="margin:0 0 14px"><small class="muted">Trainingsdauer</small><div style="font-size:27px;font-weight:850;margin-top:4px">⏱ '+duration634(finishDraft634.durationMs)+'</div></div><p>'+dt(finishDraft634.started)+' · '+finishDraft634.exercises.filter(e=>e.completed>0).length+' Übungen · '+finishDraft634.doneCount+' Sätze</p><div class="workout-feeling"><label>Wie war dein Training?</label><div class="feeling-row">'+[[1,'😫','Sehr schwach'],[2,'🙁','Schwach'],[3,'🙂','Gut'],[4,'😁','Sehr gut'],[5,'🔥','Stark']].map(([n,em,l])=>'<button type="button" class="feeling-btn" data-v634-feeling="'+n+'"><span>'+em+'</span><small>'+l+'</small></button>').join('')+'</div></div><div class="report-actions"><button type="button" id="v634FinishSave">Speichern</button></div>';
+    document.body.classList.remove('training-active');const d=$('reportDialog');if(d.open)d.close();d.showModal();
+  }
+  if($('finish'))$('finish').onclick=openFinish634;
+  const report634=$('reportDialog');if(report634)report634.addEventListener('close',()=>{if(data.session&&finishDraft634){finishDraft634=null;finishFeeling634=0;renderPlan()}});
+  document.addEventListener('click',ev=>{
+    const f=ev.target.closest?.('[data-v634-feeling]');if(f){ev.preventDefault();ev.stopImmediatePropagation();finishFeeling634=Number(f.dataset.v634Feeling);document.querySelectorAll('[data-v634-feeling]').forEach(x=>x.classList.toggle('selected',x===f));return}
+    const b=ev.target.closest?.('#v634FinishSave');if(b){ev.preventDefault();ev.stopImmediatePropagation();if(!finishFeeling634){notify('Bitte wähle zuerst aus, wie dein Training war.');return}if(!finishDraft634||!data.session)return;finishDraft634.feeling=finishFeeling634;data.history.push(finishDraft634);data.session=null;save();finishDraft634=null;finishFeeling634=0;$('reportDialog').close();render();show('home');notify('Training gespeichert');return}
+  },true);
+
+  const history634Base=history;
+  history=function(){
+    history634Base();const hs=ordered();if(!hs.length)return;const h=hs[Math.min(Math.max(hindex,0),hs.length-1)],card=document.getElementById('swipeCard');if(!card||!h)return;
+    const wrap=card.querySelector('.wrap');if(wrap){const pill=document.createElement('span');pill.className='pill history-duration-pill';pill.textContent='⏱ '+duration634(historyDuration634(h));wrap.appendChild(pill)}
+    const rows=[...card.querySelectorAll('.histrow')];h.exercises.forEach((e,i)=>{if(!rows[i]||!(Number(e.durationMs)>0))return;const sub=rows[i].querySelector('.muted.sub');if(sub)sub.textContent+=' · ⏱ '+duration634(e.durationMs,true)});
+  };
+
+  function renderTimeProgress634(){
+    const root=document.getElementById('progressContent');if(!root)return;root.querySelector('#timeProgress634')?.remove();
+    const trainings=data.history.filter(h=>inRange(h.started)).slice().sort((a,b)=>a.started.localeCompare(b.started)),durations=trainings.map(historyDuration634).filter(x=>x>0),last=durations.at(-1)||0,avg=durations.length?durations.reduce((a,b)=>a+b,0)/durations.length:0,total=durations.reduce((a,b)=>a+b,0);
+    const timedIds=new Set();trainings.forEach(h=>h.exercises.forEach(e=>{if(Number(e.durationMs)>0)timedIds.add(String(e.id))}));
+    if(!timeExerciseId634||!data.exercises.some(e=>String(e.id)===String(timeExerciseId634)))timeExerciseId634=[...timedIds][0]||String(data.exercises[0]?.id||'');
+    const ex=data.exercises.find(e=>String(e.id)===String(timeExerciseId634)),vals=ex?trainings.map(h=>h.exercises.find(x=>String(x.id)===String(ex.id)||x.name===ex.name)?.durationMs).map(Number).filter(x=>x>0):[],exLast=vals.at(-1)||0,exAvg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0,exFast=vals.length?Math.min(...vals):0;
+    const card=document.createElement('div');card.id='timeProgress634';card.className='card time-progress-card';
+    card.innerHTML='<h3>Trainingszeit</h3><div class="time-stats"><div class="time-stat"><small>Letztes Training</small><b>'+(last?duration634(last):'–')+'</b></div><div class="time-stat"><small>Durchschnitt</small><b>'+(avg?duration634(avg):'–')+'</b></div><div class="time-stat"><small>Gesamt im Zeitraum</small><b>'+(total?duration634(total):'–')+'</b></div></div><div class="divider"></div><h3 style="margin-top:15px">Zeit pro Übung</h3><select id="timeExerciseSelect634">'+data.exercises.map(e=>'<option value="'+esc(e.id)+'" '+(String(e.id)===String(timeExerciseId634)?'selected':'')+'>'+esc(e.name)+'</option>').join('')+'</select>'+(vals.length?'<div class="time-stats"><div class="time-stat"><small>Letztes Mal</small><b>'+duration634(exLast,true)+'</b></div><div class="time-stat"><small>Durchschnitt</small><b>'+duration634(exAvg,true)+'</b></div><div class="time-stat"><small>Schnellste</small><b>'+duration634(exFast,true)+'</b></div></div><p class="muted sub exercise-time-note">'+vals.length+' erfasste Einheit'+(vals.length===1?'':'en')+' in diesem Zeitraum.</p>':'<p class="muted sub exercise-time-note">Für diese Übung wird die Zeit ab deinem nächsten Training erfasst.</p>');
+    root.appendChild(card);document.getElementById('timeExerciseSelect634').onchange=e=>{timeExerciseId634=e.target.value;progress()};
+  }
+  const progress634Base=progress;progress=function(){progress634Base();renderTimeProgress634()};
+
+  // Bodyweight entry always starts from the most recently saved value.
+  const body634Base=body;
+  body=function(){
+    body634Base();const w=(data.bodyWeights||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)),input=document.getElementById('bodyKg');
+    if(w.length&&input&&document.activeElement!==input){input.value=Number(w.at(-1).kg).toFixed(1);bodyFeedback()}
+  };
+  const kg634=document.getElementById('bodyKg');
+  function resetHorizontal634(){const main=document.querySelector('body>main');if(main)main.scrollLeft=0;document.documentElement.scrollLeft=0;document.body.scrollLeft=0;const y=window.scrollY;window.scrollTo(0,y)}
+  if(kg634){kg634.addEventListener('focus',resetHorizontal634);kg634.addEventListener('input',resetHorizontal634);kg634.addEventListener('blur',()=>{requestAnimationFrame(resetHorizontal634);setTimeout(resetHorizontal634,100)});}
+
+  document.title='Mein Training '+VERSION;
+  document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training '+VERSION)});
+  save();render();
+})();
+</script>
+
 </body></html>
