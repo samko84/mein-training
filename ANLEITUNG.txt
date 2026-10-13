@@ -1,9 +1,8 @@
-Mein Training 6.0.34
+Mein Training 6.0.38
 
-Änderungen:
-- Flache, hellere Eingabefelder statt dunkler vertiefter Felder
-- Dezenter Mint-Fokus beim Antippen
-- Einheitliches Design für Körpergewicht, Trainingsgewicht und Wiederholungen
-- „Übung später“ wurde zu „Nächste Übung →“
+Änderung:
+- Ein laufendes Training kann auch ohne absolvierte Übung beendet werden.
+- In diesem Fall erscheint eine App-eigene Bestätigung.
+- Bei Bestätigung wird die Einheit verworfen und weder in Historie noch Fortschritt gespeichert.
 
 Für GitHub Pages alle Dateien dieses Ordners in das Repository mein-training hochladen und vorhandene Dateien ersetzen.

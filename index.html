@@ -1740,7 +1740,7 @@ body.chooser-lock>main{overflow-y:hidden!important;overscroll-behavior:none!impo
 </style>
 <script id="v634-script">
 (function(){
-  const VERSION='6.0.37';
+  const VERSION='6.0.38';
   let chooserReason634='manual', timeExerciseId634=null, finishDraft634=null, finishFeeling634=0;
   let chooserPageScroll634=0;
   function lockChooserPage634(){
@@ -1910,6 +1910,50 @@ body.chooser-lock>main{overflow-y:hidden!important;overscroll-behavior:none!impo
   const kg634=document.getElementById('bodyKg');
   function resetHorizontal634(){const main=document.querySelector('body>main');if(main)main.scrollLeft=0;document.documentElement.scrollLeft=0;document.body.scrollLeft=0;const y=window.scrollY;window.scrollTo(0,y)}
   if(kg634){kg634.addEventListener('focus',resetHorizontal634);kg634.addEventListener('input',resetHorizontal634);kg634.addEventListener('blur',()=>{requestAnimationFrame(resetHorizontal634);setTimeout(resetHorizontal634,100)});}
+
+  /* V6.0.38 – allow an empty training to be discarded without saving */
+  function ensureEmptyFinish638(){
+    let d=document.getElementById('emptyFinish638');
+    if(d)return d;
+    const style=document.createElement('style');
+    style.id='emptyFinish638Style';
+    style.textContent=`
+      #emptyFinish638{border:0!important;padding:0!important;background:transparent!important;color:#f4f7fb!important;width:min(430px,calc(100% - 32px))!important;max-width:430px!important;margin:auto!important;overflow:visible!important}
+      #emptyFinish638::backdrop{background:rgba(4,10,18,.72)!important;backdrop-filter:blur(4px)}
+      #emptyFinish638 .empty-finish-card{background:#1b2d42;border:1px solid #3c5870;border-radius:20px;padding:20px;box-shadow:0 18px 55px rgba(0,0,0,.45)}
+      #emptyFinish638 h3{margin:0 0 10px;color:#f4f7fb;font-size:22px}
+      #emptyFinish638 p{margin:0;color:#aebdca;line-height:1.45}
+      #emptyFinish638 .empty-finish-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+      #emptyFinish638 .empty-finish-actions button{min-height:54px;width:100%}
+      #emptyFinish638 #emptyFinishConfirm638{background:#9d3d4d!important;border-color:#a9505f!important;color:#fff!important}
+      @media(max-width:430px){#emptyFinish638{width:calc(100% - 24px)!important}#emptyFinish638 .empty-finish-card{padding:18px}}
+    `;
+    document.head.appendChild(style);
+    d=document.createElement('dialog');
+    d.id='emptyFinish638';
+    d.innerHTML='<div class="empty-finish-card"><h3>Training beenden?</h3><p>Du hast noch keine Übung absolviert. Dieses Training wird nicht gespeichert.</p><div class="empty-finish-actions"><button type="button" class="secondary" id="emptyFinishCancel638">Abbrechen</button><button type="button" id="emptyFinishConfirm638">Training beenden</button></div></div>';
+    document.body.appendChild(d);
+    document.getElementById('emptyFinishCancel638').onclick=()=>d.close();
+    document.getElementById('emptyFinishConfirm638').onclick=()=>{
+      if(!data.session){d.close();return}
+      data.session=null;
+      finishDraft634=null;finishFeeling634=0;
+      save();
+      d.close();
+      render();
+      show('home');
+      notify('Training beendet – nicht gespeichert');
+    };
+    d.addEventListener('cancel',ev=>{ev.preventDefault();d.close()});
+    return d;
+  }
+  ensureEmptyFinish638();
+  if($('finish'))$('finish').onclick=()=>{
+    const s=data.session;if(!s)return;
+    const completedSaved=Object.keys(s.saved||{}).some(id=>s.saved[id]&&(s.done[id]||[]).some(Boolean));
+    if(!completedSaved){const d=ensureEmptyFinish638();if(!d.open)d.showModal();return}
+    openFinish634();
+  };
 
   document.title='Mein Training '+VERSION;
   document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&/Mein Training 6\.0\.\d+/.test(el.textContent||''))el.textContent=el.textContent.replace(/Mein Training 6\.0\.\d+/,'Mein Training '+VERSION)});
