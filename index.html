@@ -1712,15 +1712,15 @@ html,body{width:100%;max-width:100%;overflow-x:hidden!important}
 })();
 </script>
 <style id="v634-style">
-/* V6.0.36 – clean exercise chooser: internal scrolling + locked background */
+/* V6.0.37 – exercise chooser respects iPhone safe areas */
 .exercise-choose-btn{width:100%!important;min-height:54px!important;margin-top:0!important;background:#344d65!important;border:1px solid #4b6a83!important;color:#f4f7fb!important;font-weight:750!important}
 html.chooser-lock,body.chooser-lock{overflow:hidden!important;overscroll-behavior:none!important}
 body.chooser-lock{position:fixed!important;left:0!important;right:0!important;width:100%!important}
 body.chooser-lock>main{overflow-y:hidden!important;overscroll-behavior:none!important;-webkit-overflow-scrolling:auto!important;touch-action:none!important}
-#exerciseChooser634{background:transparent;border:0;padding:0;margin:0;max-width:none;width:100%;height:100%;color:#eef6f7;overflow:hidden}
+#exerciseChooser634{background:transparent;border:0;margin:0;max-width:none;width:100%;height:100%;color:#eef6f7;overflow:hidden;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 12px) max(10px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 12px) max(10px,env(safe-area-inset-left,0px))}
 #exerciseChooser634[open]{display:flex;align-items:center;justify-content:center}
 #exerciseChooser634::backdrop{background:rgba(4,10,18,.76);backdrop-filter:blur(4px)}
-#exerciseChooser634 .chooser-card{width:min(calc(100% - 28px),560px);max-height:calc(100dvh - 44px);background:#1d3044;border:1px solid #3d5870;border-radius:20px;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.42);display:flex;flex-direction:column;overflow:hidden;outline:none}
+#exerciseChooser634 .chooser-card{width:min(100%,560px);max-height:100%;background:#1d3044;border:1px solid #3d5870;border-radius:20px;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.42);display:flex;flex-direction:column;overflow:hidden;outline:none}
 #exerciseChooser634 h3{margin:0 0 7px;flex:0 0 auto}
 #exerciseChooser634 #chooserText634{flex:0 0 auto;margin-bottom:0}
 #exerciseChooser634 .chooser-list{display:grid;gap:9px;margin-top:14px;flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 2px 10px;scroll-padding:8px}
@@ -1736,11 +1736,11 @@ body.chooser-lock>main{overflow-y:hidden!important;overscroll-behavior:none!impo
 .time-progress-card select{width:100%;min-height:50px;margin-top:7px}
 .time-progress-card .exercise-time-note{margin-top:10px}
 .history-duration-pill{white-space:nowrap}
-@media(max-width:430px){.time-progress-card .time-stats{grid-template-columns:1fr 1fr}.time-progress-card .time-stat:last-child{grid-column:1/-1}#exerciseChooser634 .chooser-card{width:calc(100% - 20px);max-height:calc(100dvh - 24px);padding:16px}#exerciseChooser634 .chooser-actions{grid-template-columns:1fr 1fr!important}#exerciseChooser634 .chooser-actions button{font-size:14px;padding-left:8px;padding-right:8px}}
+@media(max-width:430px){.time-progress-card .time-stats{grid-template-columns:1fr 1fr}.time-progress-card .time-stat:last-child{grid-column:1/-1}#exerciseChooser634 .chooser-card{width:100%;max-height:100%;padding:16px}#exerciseChooser634 .chooser-actions{grid-template-columns:1fr 1fr!important}#exerciseChooser634 .chooser-actions button{font-size:14px;padding-left:8px;padding-right:8px}}
 </style>
 <script id="v634-script">
 (function(){
-  const VERSION='6.0.36';
+  const VERSION='6.0.37';
   let chooserReason634='manual', timeExerciseId634=null, finishDraft634=null, finishFeeling634=0;
   let chooserPageScroll634=0;
   function lockChooserPage634(){
